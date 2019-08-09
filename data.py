@@ -3,7 +3,7 @@ import re
 import files
 
 def read_imgs(in_path,n_split=4):
-    action_dirs=data.top_files(in_path)
+    action_dirs=files.top_files(in_path)
     X,y=[],[]
     for action_i in action_dirs:
         cat_i,person_i= parse_name(action_i)
