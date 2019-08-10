@@ -2,21 +2,42 @@ import cv2,numpy as np
 import re,os
 import files
 
-def read_imgs(in_path,n_split=4):
+def frame_dataset(in_path):
     action_dirs=files.top_files(in_path)
+    train,test=split(action_dirs)
+    return read_frames(train)
+
+def img_dataset(in_path):
+    action_dirs=files.top_files(in_path)
+    train,test=split(action_dirs)
+    return read_imgs(train),read_imgs(test)
+
+def read_frames(actions):
     X,y=[],[]
-    for action_i in action_dirs:
+    for action_i in actions:
         cat_i,person_i= parse_name(action_i)
-        if((person_i%2)==1):
-            if(os.path.isdir(action_i)):
-                frame_path=files.top_files(action_i)            
-                for frame_ij_path in frame_path:
-                    X.append(read_frame(frame_ij_path))                
-                    y.append( cat_i)
-            else:
-                X.append(read_frame(action_i))
-                y.append(cat_i)  
+        frame_path=files.top_files(action_i)            
+        for frame_ij_path in frame_path:
+            X.append(read_frame(frame_ij_path))                
+            y.append( cat_i)
     return np.array(X),y
+
+def read_imgs(actions):
+    X,y=[],[]
+    for action_i in actions:
+        cat_i,person_i= parse_name(action_i)
+        X.append(cv2.imread(action_i,0))
+        y.append(cat_i)
+    return np.array(X),y
+
+def split(names):
+    train,test=[],[]
+    for name_i in names:
+        if((parse_name(name_i)[1]%2)==1):
+            train.append(name_i)
+        else:
+            test.append(name_i)
+    return train,test
 
 def parse_name(action_i):
     name_i=action_i.split('/')[-1]
