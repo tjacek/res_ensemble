@@ -1,5 +1,5 @@
 import cv2,numpy as np
-import re
+import re,os
 import files
 
 def read_imgs(in_path,n_split=4):
@@ -8,10 +8,14 @@ def read_imgs(in_path,n_split=4):
     for action_i in action_dirs:
         cat_i,person_i= parse_name(action_i)
         if((person_i%2)==1):
-            frame_path=files.top_files(action_i)
-            for frame_ij_path in frame_path:
-                X.append(read_frame(frame_ij_path))                
-                y.append( cat_i)
+            if(os.path.isdir(action_i)):
+                frame_path=files.top_files(action_i)            
+                for frame_ij_path in frame_path:
+                    X.append(read_frame(frame_ij_path))                
+                    y.append( cat_i)
+            else:
+                X.append(read_frame(action_i))
+                y.append(cat_i)  
     return np.array(X),y
 
 def parse_name(action_i):
