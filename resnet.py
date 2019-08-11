@@ -5,7 +5,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import classification_report
 from keras import regularizers
-import data
+import data,norm
 
 def train_conv(in_path,n_epochs=100):
     (train_X,train_y),(test_X,test_y)=data.img_dataset(in_path)
@@ -22,7 +22,7 @@ def train_conv(in_path,n_epochs=100):
     print(classification_report(test_y, pred_y,digits=4))
 
 def prepare_data(X,y):
-    X=[norm_seq(x_i) for x_i in X]
+    X=norm.normalize(X,'all')
     X= np.expand_dims(np.array(X),-1)
     y=keras.utils.to_categorical(y)
     return X,y
@@ -44,17 +44,5 @@ def make_conv(params):
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
     return model
-
-def norm_seq(x_i):
-    mean_i=np.mean(x_i,axis=0)
-    std_i=np.std(x_i,axis=0)
-    def norm_helper(j,feature_j):
-        feature_j-=mean_i[j]
-        if(std_i[j]!=0):
-            feature_j/=std_i[j]
-        return feature_j
-    return np.array([norm_helper(j,feat_j) 
-                        for j,feat_j in enumerate(x_i.T)]).T  
-
 
 train_conv("../imgset")

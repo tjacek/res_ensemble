@@ -19,15 +19,15 @@ def read_frames(actions):
         frame_path=files.top_files(action_i)            
         for frame_ij_path in frame_path:
             X.append(read_frame(frame_ij_path))                
-            y.append( cat_i)
+            y.append( cat_i-1)
     return np.array(X),y
 
 def read_imgs(actions):
     X,y=[],[]
     for action_i in actions:
         cat_i,person_i= parse_name(action_i)
-        X.append(cv2.imread(action_i,0))
-        y.append(cat_i)
+        X.append(cv2.imread(action_i,0).astype(float))
+        y.append(cat_i-1)
     return np.array(X),y
 
 def split(names):
