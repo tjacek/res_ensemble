@@ -5,6 +5,7 @@ from keras.layers import Input,Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import classification_report
 from keras import regularizers
+from keras.layers.normalization import BatchNormalization
 import data,norm
 
 def train_conv(in_path,n_epochs=100):
@@ -27,21 +28,26 @@ def prepare_data(X,y):
     y=keras.utils.to_categorical(y)
     return X,y
 
-def make_conv_(params):
+def make_conv(params):
     input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
-    conv1=Conv2D(8, kernel_size=(8, 1),
-            activation='relu')(input_layer)
-    pool1=MaxPooling2D(pool_size=(4, 1))(conv1)
-    conv2=Conv2D(8, kernel_size=(8, 1),
-              activation='relu',
-              input_shape=(params['ts_len'],params['n_feats'],1))(pool1)
-    pool2=MaxPooling2D(pool_size=(4, 1))(conv2)
-    hidden_layer = Dense(64, activation='relu')(Flatten()(pool2))
+    pool1=add_conv_layer(input_layer)
+    pool2=add_conv_layer(pool1)
+
+    hidden_layer = Dense(100, activation='relu')(Flatten()(pool2))
+    #kernel_regularizer=regularizers.l1(0.01)
+    hidden_layer=BatchNormalization()(hidden_layer)
     drop1=Dropout(0.5)(hidden_layer)
     output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
     model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
+    model.summary()
     return model
+
+def add_conv_layer(input_layer,n_kerns=8,kern_size=(8,1),pool_size=(4,1)):
+    conv1=Conv2D(n_kerns, kernel_size=kern_size,
+            activation='relu')(input_layer)
+    pool1=MaxPooling2D(pool_size=pool_size)(conv1)
+    return BatchNormalization()(pool1)
 
 train_conv("../imgset")
