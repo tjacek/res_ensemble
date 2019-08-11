@@ -10,7 +10,7 @@ def dict_dataset(in_path):
         seq_i=[]
         for frame_ij_path in frame_paths:
             seq_i.append(read_frame(frame_ij_path))
-        name_i=path_i.split('/')
+        name_i=path_i.split('/')[-1]
         data_dict[name_i]=seq_i  
     return data_dict
     
