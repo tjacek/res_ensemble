@@ -1,7 +1,7 @@
 import numpy as np
 import keras,keras.utils
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
+from keras.models import Model,Sequential
+from keras.layers import Input,Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import classification_report
 from keras import regularizers
@@ -27,20 +27,19 @@ def prepare_data(X,y):
     y=keras.utils.to_categorical(y)
     return X,y
 
-def make_conv(params):
-    model = Sequential()
-    model.add(Conv2D(8, kernel_size=(8, 1),
-                 activation='relu',
-                 input_shape=(params['ts_len'],params['n_feats'],1)))
-    model.add(MaxPooling2D(pool_size=(4, 1)))
-    model.add(Conv2D(8, kernel_size=(8, 1),
-                 activation='relu',
-                 input_shape=(params['ts_len'],params['n_feats'],1)))
-    model.add(MaxPooling2D(pool_size=(4, 1)))
-    model.add(Flatten())
-    model.add(Dense(64, activation='relu',name="hidden",kernel_regularizer=regularizers.l1(0.01)))
-    model.add(Dropout(0.5))
-    model.add(Dense(units=params['n_cats'], activation='softmax'))
+def make_conv_(params):
+    input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
+    conv1=Conv2D(8, kernel_size=(8, 1),
+            activation='relu')(input_layer)
+    pool1=MaxPooling2D(pool_size=(4, 1))(conv1)
+    conv2=Conv2D(8, kernel_size=(8, 1),
+              activation='relu',
+              input_shape=(params['ts_len'],params['n_feats'],1))(pool1)
+    pool2=MaxPooling2D(pool_size=(4, 1))(conv2)
+    hidden_layer = Dense(64, activation='relu')(Flatten()(pool2))
+    drop1=Dropout(0.5)(hidden_layer)
+    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
+    model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
     return model
