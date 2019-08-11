@@ -35,10 +35,10 @@ def make_res(params):
     pool1=add_conv_layer(input_layer,activ=activ)
     pool2=add_conv_layer(pool1,activ=activ)
 
-    hidden_layer = Dense(64, activation=activ)(Flatten()(pool2))   
-    hidden_layer2=Dense(64, activation=activ)(hidden_layer)
-    res_layer=add([hidden_layer, hidden_layer2])
-    drop1=Dropout(0.5)(res_layer)
+    res_layer1=add_res_layer(Flatten()(pool2),n_hidden=100,activ=activ)
+    res_layer2=add_res_layer(res_layer1,n_hidden=100,activ=activ)
+    
+    drop1=Dropout(0.5)(res_layer2)
     output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
     model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
@@ -69,5 +69,11 @@ def add_conv_layer(input_layer,n_kerns=8,activ='relu',
             activation=activ)(input_layer)
     pool1=MaxPooling2D(pool_size=pool_size)(conv1)
     return BatchNormalization()(pool1)
+
+def add_res_layer(input_layer,n_hidden=64,activ='relu',l1=False):
+    ker_reg=regularizers.l1(0.01) if(l1) else None
+    hidden_layer = Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(input_layer)   
+    hidden_layer2=Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(hidden_layer)
+    return add([hidden_layer, hidden_layer2])
 
 train_conv("../imgset")
