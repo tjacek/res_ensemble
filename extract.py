@@ -34,8 +34,8 @@ def save_seqs(frame_feats,out_path):
             np.savetxt(out_ij,seq_j, delimiter=',')
 
 def read_seqs(in_path):
-    return [ read_dict(path_i)
-                for path_i in files.top_files(in_path)]
+    return { path_i.split('/')[-1]:read_dict(path_i)
+                for path_i in files.top_files(in_path)}
         
 def read_dict(dict_path):
     return { path_i.split('/')[-1]:np.loadtxt(path_i,delimiter=',') 
