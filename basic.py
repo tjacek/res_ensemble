@@ -1,13 +1,16 @@
+import numpy as np
 import keras,keras.utils
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
+from keras.models import Model,Sequential
+from keras.layers import Input,Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
+from keras.layers.merge import add
 from keras import regularizers
+from keras.layers.normalization import BatchNormalization
 import data,files
 
 def train_binary_model(in_path,out_path,n_epochs=1500):
-    train_X,train_y=data.read_imgs(in_path)
-    train_y=keras.utils.to_categorical(y)
+    train_X,train_y=data.frame_dataset(in_path)
+    train_y=keras.utils.to_categorical(train_y)
     files.make_dir(out_path)
     n_cats=train_y.shape[1]
     for cat_i in range(n_cats):
@@ -37,17 +40,21 @@ def make_conv(n_cats):
     return model
 
 def make_res(n_cats):
-    input_layer = Input(shape=(64,64,1))
-    activ='relu' #'elu'
+    input_layer = Input(shape=(64,64,4))
+    activ='elu' #'elu'
+    
+    ker_reg=None#regularizers.l1(0.01)# if(l1) else None
 
     conv1=Conv2D(16, kernel_size=(5,5),
             activation=activ)(input_layer)
     pool1=MaxPooling2D(pool_size=(4,4))(conv1)
-    
+    pool1=BatchNormalization()(pool1)
+
     conv2=Conv2D(16, kernel_size=(5,5),
             activation=activ)(pool1)
     pool2=MaxPooling2D(pool_size=(4,4))(conv1)
-    
+    pool2=BatchNormalization()(pool2)
+
     n_hidden=100
     
     short1 = Dense(n_hidden, activation=activ)(Flatten()(pool2))   
@@ -58,12 +65,12 @@ def make_res(n_cats):
     dense_layer2=Dense(n_hidden, activation=activ)(short2)
     res_layer2=add([short2, dense_layer2])
 
-    short3 = Dense(n_hidden, activation=activ)(res_layer2)   
-    dense_layer3=Dense(n_hidden, activation=activ)(short3)
-    res_layer3=add([short3, dense_layer3],name='hidden')
+    short3 = Dense(n_hidden, activation=activ,kernel_regularizer=regularizers.l1(0.01))(res_layer2)   
+    dense_layer3=Dense(n_hidden, activation=activ,kernel_regularizer=regularizers.l1(0.01))(short3)
+    res_layer3=add([short3, dense_layer3],name='hidden',)
 
     drop1=Dropout(0.5)(res_layer3)
-    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
+    output_layer = Dense(units=n_cats, activation='softmax')(drop1)
     model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta())
