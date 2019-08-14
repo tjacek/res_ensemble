@@ -9,7 +9,17 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.merge import add
 import data,norm
 
-def train_conv(in_path,n_epochs=100):
+def train_conv(in_path,out_path=None,n_epochs=100):
+    model,(test_X,test_y)=train_model(in_path,n_epochs)
+    raw_pred=model.predict(test_X,batch_size=32)
+    pred_y,test_y=np.argmax(raw_pred,axis=1),np.argmax(test_y,axis=1)
+    print(pred_y)
+    print(test_y)
+    print(classification_report(test_y, pred_y,digits=4))
+    if(out_path):
+        model.save(out_path)
+
+def train_model(in_path,n_epochs):
     (train_X,train_y),(test_X,test_y)=data.img_dataset(in_path)
     params={'ts_len':train_X[0].shape[0],'n_feats':train_X[0].shape[1],
             'n_cats': max(test_y)+1}
@@ -17,11 +27,7 @@ def train_conv(in_path,n_epochs=100):
     print(params)
     model=make_res(params)
     model.fit(train_X,train_y,epochs=n_epochs,batch_size=32)
-    raw_pred=model.predict(test_X,batch_size=32)
-    pred_y,test_y=np.argmax(raw_pred,axis=1),np.argmax(test_y,axis=1)
-    print(pred_y)
-    print(test_y)
-    print(classification_report(test_y, pred_y,digits=4))
+    return model,(test_X,test_y)
 
 def prepare_data(X,y):
     X=norm.normalize(X,'all')
@@ -75,5 +81,3 @@ def add_res_layer(input_layer,n_hidden=64,activ='relu',l1=False):
     hidden_layer = Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(input_layer)   
     hidden_layer2=Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(hidden_layer)
     return add([hidden_layer, hidden_layer2])
-
-train_conv("../imgset")
