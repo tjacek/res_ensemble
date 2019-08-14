@@ -19,10 +19,12 @@ def frame_dataset(in_path):
     train,test=split(action_dirs)
     return read_frames(train)
 
-def img_dataset(in_path):
+def img_dataset(in_path,split_data=True):
     action_dirs=files.top_files(in_path)
-    train,test=split(action_dirs)
-    return read_imgs(train),read_imgs(test)
+    if(split_data):
+        train,test=split(action_dirs)
+        return read_imgs(train),read_imgs(test)
+    return read_imgs(action_dirs)
 
 def read_frames(actions):
     X,y=[],[]
@@ -35,12 +37,13 @@ def read_frames(actions):
     return np.array(X),y
 
 def read_imgs(actions):
-    X,y=[],[]
+    X,y,names=[],[],[]
     for action_i in actions:
         cat_i,person_i= parse_name(action_i)
         X.append(cv2.imread(action_i,0).astype(float))
         y.append(cat_i-1)
-    return np.array(X),y
+        names.append(action_i.split('/')[-1])
+    return np.array(X),y,names
 
 def split(names):
     train,test=[],[]

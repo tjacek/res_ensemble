@@ -7,7 +7,18 @@ from sklearn.metrics import classification_report
 from keras import regularizers
 from keras.layers.normalization import BatchNormalization
 from keras.layers.merge import add
-import data,norm
+from keras.models import load_model
+import data,norm,feats
+
+def extract_feats(frame_path,model_path,out_path):
+    model=load_model(model_path)
+    extractor=Model(inputs=model.input,
+                outputs=model.get_layer("hidden").output)
+    X,y,names=data.img_dataset(frame_path,split_data=False)
+    X=np.expand_dims(X,-1)
+    X_feats=extractor.predict(X)
+    feat_dict={ names[i]:feat_i for i,feat_i in enumerate(X_feats)}
+    feats.save_feats(feat_dict,out_path)
 
 def train_conv(in_path,out_path=None,n_epochs=100):
     model,(test_X,test_y)=train_model(in_path,n_epochs)
@@ -42,7 +53,7 @@ def make_res(params):
     pool2=add_conv_layer(pool1,activ=activ)
 
     res_layer1=add_res_layer(Flatten()(pool2),n_hidden=100,activ=activ)
-    res_layer2=add_res_layer(res_layer1,n_hidden=100,activ=activ)
+    res_layer2=add_res_layer(res_layer1,n_hidden=100,activ=activ,name="hidden")
     
     drop1=Dropout(0.5)(res_layer2)
     output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
@@ -62,7 +73,7 @@ def make_conv(params):
     #kernel_regularizer=regularizers.l1(0.01)
     hidden_layer=BatchNormalization()(hidden_layer)
     drop1=Dropout(0.5)(hidden_layer)
-    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
+    output_layer = Dense(units=params['n_cats'], activation='softmax',name="hidden")(drop1)
     model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
@@ -76,8 +87,8 @@ def add_conv_layer(input_layer,n_kerns=8,activ='relu',
     pool1=MaxPooling2D(pool_size=pool_size)(conv1)
     return BatchNormalization()(pool1)
 
-def add_res_layer(input_layer,n_hidden=64,activ='relu',l1=False):
+def add_res_layer(input_layer,n_hidden=64,activ='relu',l1=False,name=None):
     ker_reg=regularizers.l1(0.01) if(l1) else None
     hidden_layer = Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(input_layer)   
     hidden_layer2=Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(hidden_layer)
-    return add([hidden_layer, hidden_layer2])
+    return add([hidden_layer, hidden_layer2],name=name)
