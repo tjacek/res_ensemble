@@ -15,14 +15,15 @@ def extract_feats(frame_path,model_path,out_path):
     extractor=Model(inputs=model.input,
                 outputs=model.get_layer("hidden").output)
     X,y,names=data.img_dataset(frame_path,split_data=False)
-    X=np.expand_dims(X,-1)
+    #X=np.expand_dims(X,-1)
+    X,y=prepare_data(X,y)
     X_feats=extractor.predict(X)
     feat_dict={ names[i]:feat_i for i,feat_i in enumerate(X_feats)}
     feats.save_feats(feat_dict,out_path)
 
 def train_conv(in_path,out_path=None,n_epochs=100):
     model,(test_X,test_y)=train_model(in_path,n_epochs)
-    raw_pred=model.predict(test_X,batch_size=32)
+    raw_pred=model.predict(test_X,batch_size=100)
     pred_y,test_y=np.argmax(raw_pred,axis=1),np.argmax(test_y,axis=1)
     print(pred_y)
     print(test_y)
@@ -30,7 +31,7 @@ def train_conv(in_path,out_path=None,n_epochs=100):
     if(out_path):
         model.save(out_path)
 
-def pretrained_model(in_path,nn_path,n_epochs=100):
+def pretrained_model(in_path,nn_path,out_path=None,n_epochs=100):
     (train_X,train_y),(test_X,test_y),params=load_data(in_path)
     pretrain_model=load_model(nn_path)
     pretrain_model.summary()
@@ -42,17 +43,18 @@ def pretrained_model(in_path,nn_path,n_epochs=100):
               optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True),
               metrics=['accuracy'])
     model.summary()
-    model.fit(train_X,train_y,epochs=n_epochs,batch_size=32)
+    model.fit(train_X,train_y,epochs=n_epochs,batch_size=100)
     score = model.evaluate(test_X,test_y, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
-
+    if(out_path):
+        model.save(out_path)
 
 def train_model(in_path,n_epochs):
     (train_X,train_y),(test_X,test_y),params=load_data(in_path)
     print(params)
     model=make_conv(params)
-    model.fit(train_X,train_y,epochs=n_epochs,batch_size=32)
+    model.fit(train_X,train_y,epochs=n_epochs,batch_size=100)
     return model,(test_X,test_y)
 
 def load_data(in_path):
@@ -89,15 +91,17 @@ def make_conv(params):
     activ='relu' #'elu'
     pool1=add_conv_layer(input_layer,0,activ=activ)
     pool2=add_conv_layer(pool1,1,activ=activ)
-
-    hidden_layer = Dense(100,name='hidden', activation=activ)(Flatten()(pool2))
-    #kernel_regularizer=regularizers.l1(0.01)
+    kernel_regularizer=regularizers.l1(0.001)
+    hidden_layer = Dense(100,name='hidden', activation=activ,
+                         kernel_regularizer=kernel_regularizer)(Flatten()(pool2))
+   
     #hidden_layer=BatchNormalization()(hidden_layer)
     drop1=Dropout(0.5)(hidden_layer)
     output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
     model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
+              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True),
+             metrics=['accuracy'])
     model.summary()
     return model
 
