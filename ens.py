@@ -14,10 +14,14 @@ def binary(in_path,out_path,n_epochs=500):
         out_i=out_path+'/nn'+str(i)
         model.save(out_i)
 
-def binary_extract(in_path,frame_path,out_path):
+def binary_extract(in_path,frame_path,out_path,cat_feats=False):
     model_paths=files.top_files(in_path)
     models=[load_model(path_i) for path_i in model_paths]
-    extractors=[get_extractor(model_i) for model_i in models]
+    if(cat_feats):
+        extractors=models	
+    else:
+        extractors=[get_extractor(model_i) for model_i in models]
+
     X,y,names=data.img_dataset(frame_path,split_data=False)
     X,y=resnet.prepare_data(X,y)
     files.make_dir(out_path)
