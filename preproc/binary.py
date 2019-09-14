@@ -3,7 +3,7 @@ import cv2
 import files
 
 def convert(in_path,out_path):
-    paths=files.top_files(in_path)[:10]
+    paths=files.top_files(in_path)
     files.make_dir(out_path)
     for path_i in paths:
         out_i= out_path +'/' +path_i.split('/')[-1]
@@ -12,10 +12,19 @@ def convert(in_path,out_path):
 
 def to_imgs(frames,img_path):
     files.make_dir(img_path)
-#    img_path=img_path.split('.')[0]
+    frames=standarize(frames)
     for j,frame_j in enumerate(frames):     
         frame_name_j=img_path+'/'+str(j)+".png"
         cv2.imwrite(frame_name_j,frame_j)
+
+def standarize(frames):
+    frames=np.array(frames)
+    frames-= (np.amin(frames[frames!=0]) -10)
+    frames/=np.amax(frames)
+    frames*=240.0
+    frames= np.abs(frames-250)
+    frames[frames>245]=0
+    return frames
 
 def from_binary(action_path):
     print(action_path)
