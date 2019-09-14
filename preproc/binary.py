@@ -1,12 +1,23 @@
 import numpy as np
+import cv2
 import files
 
-def read(in_path):
+def convert(in_path,out_path):
     paths=files.top_files(in_path)[:10]
-    print(paths)
-    return [read_binary(path_i) for path_i in paths]
+    files.make_dir(out_path)
+    for path_i in paths:
+        out_i= out_path +'/' +path_i.split('/')[-1]
+        frames=from_binary(path_i) 
+        to_imgs(frames,out_i)
 
-def read_binary(action_path):
+def to_imgs(frames,img_path):
+    files.make_dir(img_path)
+#    img_path=img_path.split('.')[0]
+    for j,frame_j in enumerate(frames):     
+        frame_name_j=img_path+'/'+str(j)+".png"
+        cv2.imwrite(frame_name_j,frame_j)
+
+def from_binary(action_path):
     print(action_path)
     with open(action_path, mode='rb') as f:
     	int_action=np.fromfile(f, dtype=np.uint32)
