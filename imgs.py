@@ -10,3 +10,12 @@ def read_seqs(in_path):
         print(name_i)
         seqs[name_i]=frames
     return seqs	
+
+def save_seqs(seq_dict,out_path):
+    files.make_dir(out_path)
+    for name_i,seq_i in seq_dict.items():
+        seq_path_i=out_path+'/'+name_i
+        files.make_dir(seq_path_i)
+        for j,frame_j in enumerate(seq_i):     
+            frame_name_j=seq_path_i+'/'+str(j)+".png"
+            cv2.imwrite(frame_name_j,frame_j)
