@@ -3,7 +3,7 @@ import files
 
 def transform(in_path,out_path,frame_fun):
     img_seqs=read_seqs(in_path)
-    new_seqs={ name_i:[frame_fun(frame_j) for frame_j in seq_i] 
+    new_seqs={ name_i: frame_fun(seq_i)
                 for name_i,seq_i in img_seqs.items()}
     save_seqs(new_seqs,out_path)
 
