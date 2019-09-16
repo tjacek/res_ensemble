@@ -10,10 +10,9 @@ from sklearn.metrics import classification_report
 import data#,files
 
 
-def simple_exp(in_path,n_epochs=10):
+def simple_exp(in_path,n_epochs=100):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
-    n_cats=count_cats(y_train)
-    n_channels=count_channels(X_train) 
+    n_cats,n_channels=data.get_params(X_train,y_train)
     X_train,y_train=prepare_data(X_train,y_train,n_channels)
     X_test,y_test=prepare_data(X_test,y_test,n_channels)
 
@@ -25,20 +24,9 @@ def simple_exp(in_path,n_epochs=10):
     print(classification_report(test_y, pred_y,digits=4))
 
 def prepare_data(X,y,n_channels):
-    X=format_frames(X,n_channels)
+    X=data.format_frames(X,n_channels)
     y=keras.utils.to_categorical(y)
     return X,y
-
-def count_cats(y):
-    return np.unique(np.array(y)).shape[0]
-
-def count_channels(X):
-    frame_dims=X[0].shape
-    return int(frame_dims[0]/frame_dims[1])
-
-def format_frames(frames ,n_channels):
-    return np.array([np.array(np.vsplit(frame_i,n_channels)).T
-                      for frame_i in frames])
 
 #def train_binary_model(in_path,out_path,n_epochs=1500):
 #    train_X,train_y=data.frame_dataset(in_path)

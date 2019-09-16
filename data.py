@@ -1,5 +1,5 @@
-#import cv2,numpy as np
-import re,os
+import numpy as np
+import re
 import imgs
 
 def make_dataset(in_path):
@@ -31,3 +31,17 @@ def to_dataset(names,img_seq):
             X.append(frame_j)
             y.append(cat_i)
     return X,y
+
+def get_params(X,y):
+    return count_cats(y),count_channels(X) 
+
+def count_cats(y):
+    return np.unique(np.array(y)).shape[0]
+
+def count_channels(X):
+    frame_dims=X[0].shape
+    return int(frame_dims[0]/frame_dims[1])
+
+def format_frames(frames ,n_channels):
+    return np.array([np.array(np.vsplit(frame_i,n_channels)).T
+                      for frame_i in frames])
