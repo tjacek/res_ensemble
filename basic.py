@@ -10,7 +10,7 @@ from sklearn.metrics import classification_report
 import data#,files
 
 
-def simple_exp(in_path,n_epochs=100):
+def simple_exp(in_path,out_path=None,n_epochs=100):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X_train,y_train=prepare_data(X_train,y_train,n_channels)
@@ -18,7 +18,11 @@ def simple_exp(in_path,n_epochs=100):
 
     model=make_conv(n_cats,n_channels)
     model.fit(X_train,y_train,epochs=n_epochs,batch_size=256)
+    test_model(X_test,y_test,model)
+    if(out_path):
+         model.save(out_path)
 
+def test_model(X_test,y_test,model):
     raw_pred=model.predict(X_test,batch_size=256)
     pred_y,test_y=np.argmax(raw_pred,axis=1),np.argmax(y_test,axis=1)
     print(classification_report(test_y, pred_y,digits=4))

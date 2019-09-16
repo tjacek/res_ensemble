@@ -42,6 +42,8 @@ def count_channels(X):
     frame_dims=X[0].shape
     return int(frame_dims[0]/frame_dims[1])
 
-def format_frames(frames ,n_channels):
+def format_frames(frames ,n_channels=None):
+    if(not n_channels):
+        n_channels=count_channels(frames)
     return np.array([np.array(np.vsplit(frame_i,n_channels)).T
                       for frame_i in frames])
