@@ -1,4 +1,4 @@
-import cv2
+import cv2,numpy as np
 import files
 
 def transform(in_path,out_path,frame_fun,single_frame=False):
@@ -29,3 +29,15 @@ def save_seqs(seq_dict,out_path):
         for j,frame_j in enumerate(seq_i):     
             frame_name_j=seq_path_i+'/'+str(j)+".png"
             cv2.imwrite(frame_name_j,frame_j)
+
+def concat(in_path1,in_path2,out_path):
+    seq1,seq2=read_seqs(in_path1),read_seqs(in_path2)
+    names=seq1.keys()
+    concat_seqs={}
+    for name_i in names:
+        seq1_i,seq2_i=seq1[name_i],seq2[name_i]
+        seq_len=min(len(seq1_i),len(seq2_i))
+        seq1_i,seq2_i= seq1_i[:seq_len],seq2_i[:seq_len]
+        new_seq_i=np.concatenate( [seq1_i,seq2_i],axis=1)
+        concat_seqs[name_i]=new_seq_i
+    save_seqs(concat_seqs,out_path)
