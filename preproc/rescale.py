@@ -14,16 +14,16 @@ def pairs(in_path,out_path):
                     for j in range(len(seq_i)-1)] 
     imgs.transform(in_path,out_path,pair_helper)
 
-def projection(in_path,out_path):
+def projection(in_path,out_path,dim_x=64,dim_y=64):
     def proj_helper(frame_i):
-        return proj(frame_i,dim=True)
+        proj_xz= cv2.resize(proj(frame_i,dim=True),(dim_x,dim_y), interpolation = cv2.INTER_CUBIC)
+        proj_yz= cv2.resize(proj(frame_i,dim=False),(dim_x,dim_y), interpolation = cv2.INTER_CUBIC)
+        return np.concatenate([proj_xz,proj_yz],axis=0)
     imgs.transform(in_path,out_path,proj_helper,True)
 
 def proj(frame_i,dim=True):
     points=to_points(frame_i)
     dim=int(dim)
-#    max_x,max_y=np.amax(points[:,dim]),np.amax(points[:,2])
-
     max_values=np.amax(points,axis=0)
     max_x,max_y=max_values[dim],max_values[2]
     proj_i=np.zeros((max_x+5,max_y+5))
