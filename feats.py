@@ -3,17 +3,10 @@ import scipy.stats
 import extract,files
 
 def compute_feats(in_path,out_path):
-    data_dict=extract.read_seqs(in_path)
-    feat_dicts={ name_i: make_dataset(data_i) 
-                    for name_i,data_i in data_dict.items()}
-    files.make_dir(out_path)
-    for name_i,feat_dict in feat_dicts.items():
-        out_i=out_path+'/'+name_i
-        save_feats(feat_dict,out_i)
-
-def make_dataset(data_i):
-	return {name_j:feat_vector(seq_j) 
-	            for name_j,seq_j in data_i.items()}
+    data_dict=read_seqs(in_path)
+    feat_dict={ name_i:feat_vector(seq_i)
+                    for name_i,seq_i in data_dict.items()}
+    save_feats(feat_dict,out_path)
 
 def feat_vector(seq_j):
     feats=[]
@@ -43,3 +36,8 @@ def save_feats(feat_dict,out_path):
     file_str = open(out_path,'w')
     file_str.write(feat_txt)
     file_str.close()
+
+
+def read_seqs(in_path):
+    return { path_i.split('/')[-1]:np.loadtxt(path_i,delimiter=',') 
+                for path_i in files.top_files(in_path)}

@@ -27,11 +27,3 @@ def save_seqs(feat_dict,out_path):
         name_j=name_j.split('.')[0]+'.txt'
         out_j=out_path+'/'+name_j
         np.savetxt(out_j,seq_j, delimiter=',')
-
-#def read_seqs(in_path):
-#    return { path_i.split('/')[-1]:read_dict(path_i)
-#                for path_i in files.top_files(in_path)}
-        
-#def read_dict(dict_path):
-#    return { path_i.split('/')[-1]:np.loadtxt(path_i,delimiter=',') 
-#                for path_i in files.top_files(dict_path)}

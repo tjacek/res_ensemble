@@ -1,5 +1,19 @@
 import numpy as np
-import data,basic,files,models,extract
+import data,basic,files,models,extract,feats
+
+def binary_feats(seq_path,feats_path):
+    files.make_dir(feats_path)
+    for i,in_i in enumerate(files.top_files(seq_path)):
+        print(i)
+        out_i= feats_path+'/'+in_i.split('/')[-1]
+        feats.compute_feats(in_i,out_i)
+
+def binary_extract(frame_path,model_path,seq_path):
+    files.make_dir(seq_path)
+    for i,in_i in enumerate(files.top_files(model_path)):
+        print(i)
+        out_i= seq_path+'/'+in_i.split('/')[-1]
+        extract.extract_features(frame_path,in_i,out_i)
 
 def train_binary_model(in_path,out_path,n_epochs=1500):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
@@ -14,13 +28,6 @@ def train_binary_model(in_path,out_path,n_epochs=1500):
         model.fit(X_train,y_i,epochs=n_epochs,batch_size=256)
         out_i=out_path+'/nn'+str(cat_i)
         model.save(out_i)
-
-def binary_extract(frame_path,model_path,seq_path):
-    files.make_dir(seq_path)
-    for i,in_i in enumerate(files.top_files(model_path)):
-        print(i)
-        out_i= seq_path+'/'+in_i.split('/')[-1]
-        extract.extract_features(frame_path,in_i,out_i)
 
 def binarize(train_y,cat_i):
     binary_y=[]
