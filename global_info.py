@@ -14,10 +14,15 @@ def make_global(seq_path,frame_path,out_path):
 def get_global_img(seq_path):
     seq_dict=feats.read_seqs(seq_path)
     def scale_helper(frame_j):
-        return 100.0*cv2.resize(frame_j,(64,64), interpolation = cv2.INTER_CUBIC)
+        return cv2.resize(frame_j,(64,64), interpolation = cv2.INTER_CUBIC)
     return {name_i:scale_helper(seq_i)
                 for name_i,seq_i in seq_dict.items()} 
 
 def clean_dict(dict_i):
-	return { "_".join(re.findall(r'\d+',name_i)):data_i
+	return { clean_name(name_i):data_i
 		        for name_i,data_i in dict_i.items()}
+
+def clean_name(name_i):
+    numbers=re.findall(r'\d+',name_i)
+    return "_".join([ n_i[1:] if n_i.startswith('0') else n_i
+                        for n_i in numbers])
