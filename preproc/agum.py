@@ -6,11 +6,17 @@ def agum_simple(raw_path,agum_path):
     agum_template(raw_path,agum_path,agum,n_iters=1)
 
 
-def agum_data(raw_path,agum_path):
+def agum_trans(raw_path,agum_path):
     crop=iaa.CropAndPad(percent=(-0.15, 0.15),sample_independently=False,keep_size=False)
     agum =  iaa.Sequential([crop]) #iaa.SomeOf(2, [cro,crop_y])
     agum_template(raw_path,agum_path,agum,n_iters=2)
 
+def agum_data(raw_path,agum_path):
+    crop=iaa.CropAndPad(percent=(-0.15, 0.15),sample_independently=False,keep_size=False)
+    drop=iaa.CoarseDropout(0.02, size_percent=0.15, per_channel=0.5)
+    gauss = iaa.GaussianBlur(sigma=(0.0, 3.0))
+    agum =  iaa.SomeOf(2, [crop,drop,gauss])
+    agum_template(raw_path,agum_path,agum,n_iters=4)
 
 def agum_template(raw_path,agum_path,agum,n_iters=10):
     raw_data=imgs.read_seqs(raw_path)
