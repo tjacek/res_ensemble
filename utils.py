@@ -2,8 +2,9 @@ import os.path
 import basic,extract,feats,ens
 import preproc.agum,preproc.rescale
 
-def ensemble_models(frame_path,n_epochs=15):
-    cur_dir=os.path.split(frame_path)[0]
+def ensemble_models(frame_path,agum_path=None,n_epochs=15):
+    agum_path=frame_path if(not agum_path) else agum_path
+    cur_dir=os.path.split(agum_path)[0]
     nn_path,seq_path,feat_path=cur_dir+'/binary_nn',cur_dir+'/binary_seq',cur_dir+'/binary_feats'
     ens.train_binary_model(frame_path,nn_path,n_epochs=n_epochs)
     ens.binary_extract(frame_path,nn_path,seq_path)
