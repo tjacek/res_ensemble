@@ -1,5 +1,5 @@
 import os.path
-import basic,extract,feats,ens
+import basic,extract,feats,ens,files
 import preproc.agum,preproc.rescale
 
 def ensemble_models(frame_path,agum_path=None,n_epochs=15):
@@ -9,6 +9,11 @@ def ensemble_models(frame_path,agum_path=None,n_epochs=15):
     ens.train_binary_model(frame_path,nn_path,n_epochs=n_epochs)
     ens.binary_extract(frame_path,nn_path,seq_path)
     ens.binary_feats(seq_path,feat_path)
+
+def extract(frame_path,nn_path,seq_path,k=15):
+    nn_paths=files.top_files(nn_path)[k:]
+    print(nn_paths)
+    ens.binary_extract(frame_path,nn_paths,seq_path)
 
 def single_model(frame_path,n_epochs,nn_type):
     cur_dir=os.path.split(frame_path)[0]

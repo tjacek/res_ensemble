@@ -1,4 +1,5 @@
 import numpy as np
+import gc
 import data,basic,files,models,extract,feats
 
 def binary_feats(seq_path,feats_path):
@@ -10,12 +11,14 @@ def binary_feats(seq_path,feats_path):
 
 def binary_extract(frame_path,model_path,seq_path):
     files.make_dir(seq_path)
-    for i,in_i in enumerate(files.top_files(model_path)):
+    paths=model_path if(type(model_path)==list) else files.top_files(model_path) 
+    for i,in_i in enumerate(paths):
         print(i)
         out_i= seq_path+'/'+in_i.split('/')[-1]
         extract.extract_features(frame_path,in_i,out_i)
+        gc.collect()
 
-def train_binary_model(in_path,out_path,n_epochs=1500):
+def train_binary_model(in_path,out_path,n_epochs=150):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X_train,y_train=basic.prepare_data(X_train,y_train,n_channels)
@@ -23,7 +26,7 @@ def train_binary_model(in_path,out_path,n_epochs=1500):
     files.make_dir(out_path)
     for cat_i in range(n_cats):        
         y_i=binarize(y_train,cat_i)
-        model=models.make_conv(2,n_channels)
+        model=models.make_exp(2,n_channels)
         model.summary()
         model.fit(X_train,y_i,epochs=n_epochs,batch_size=256)
         out_i=out_path+'/nn'+str(cat_i)
