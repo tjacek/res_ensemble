@@ -4,8 +4,9 @@ import imgs,files
 
 def motion(in_path,out_path):
     def motion_helper(frames):
+        kernel=triangual_kernel(len(frames))
         frames=np.array(frames).T
-        conv_frames=[convolve1d(frame_i,[0.0,1.0,-1.0], axis=-1,mode="constant") for frame_i in frames]
+        conv_frames=[convolve1d(frame_i,kernel, axis=-1,mode="constant") for frame_i in frames]
         return np.array(conv_frames).T
     imgs.transform(in_path,out_path,motion_helper)
 
@@ -30,3 +31,11 @@ def sum_imgs(frames):
     frames=np.array(frames)
     norm_const= 1.0/float(frames.shape[0])
     return norm_const*np.sum(frames ,axis=0)
+
+def triangual_kernel(size):
+    neg,pos=list(range(size)),list(range(size))
+    pos.reverse()
+    kernel=np.array(neg+[size]+pos,dtype=float )
+    kernel/=np.sum(kernel)
+    print(kernel)
+    return kernel
