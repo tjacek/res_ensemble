@@ -1,6 +1,6 @@
 import numpy as np
 import gc
-import data,basic,files,models,extract,feats
+import data,basic,files,models,extract,feats,imgs
 
 def binary_feats(seq_path,feats_path):
     files.make_dir(feats_path)
@@ -12,10 +12,11 @@ def binary_feats(seq_path,feats_path):
 def binary_extract(frame_path,model_path,seq_path):
     files.make_dir(seq_path)
     paths=model_path if(type(model_path)==list) else files.top_files(model_path) 
+    frame_dict=imgs.read_seqs(frame_path)
     for i,in_i in enumerate(paths):
         print(i)
         out_i= seq_path+'/'+in_i.split('/')[-1]
-        extract.extract_features(frame_path,in_i,out_i)
+        extract.extract_features(frame_dict,in_i,out_i)
         gc.collect()
 
 def train_binary_model(in_path,out_path,n_epochs=150):

@@ -4,7 +4,7 @@ from keras.models import load_model
 import imgs,data,files
 
 def extract_features(frame_path,model_path,out_path):
-    seq_dict=imgs.read_seqs(frame_path)
+    seq_dict=imgs.read_seqs(frame_path) if(type(frame_path)==str) else frame_path
     extractor=make_extractor(load_model(model_path))
     feat_dict=frame_features(seq_dict,extractor)
     save_seqs(feat_dict,out_path)
