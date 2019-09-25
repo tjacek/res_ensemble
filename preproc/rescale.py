@@ -45,6 +45,11 @@ def smooth_proj(proj_i,dim_x,dim_y):
     kernel2= np.ones((7,7),np.uint8)
     binary_img = cv2.dilate(binary_img,kernel2,iterations = 1)
     binary_img[binary_img!=0]=200.0
+    return scale(binary_img ,dim_x,dim_y)
+
+def scale(binary_img ,dim_x,dim_y):
+    if(type(binary_img)==list):
+        return [  scale(frame_i,dim_x,dim_y) for frame_i in binary_img]
     return cv2.resize(binary_img,(dim_x,dim_y), interpolation = cv2.INTER_CUBIC)
 
 def remove_isol(img_i):

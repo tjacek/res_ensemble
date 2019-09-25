@@ -1,5 +1,5 @@
-import os.path
-import basic,extract,feats,ens,files
+import os.path, numpy as np
+import basic,extract,feats,ens,files,imgs
 import preproc.agum,preproc.rescale
 
 def ensemble_models(frame_path,agum_path=None,n_epochs=15):
@@ -29,3 +29,14 @@ def agum_seq(in_path):
     preproc.agum.agum_data(in_path,agum_path)
     preproc.rescale.rescale(agum_path,scale_path)
     preproc.rescale.pairs(scale_path,time_path)
+
+def add_mode(old_path,new_path,out_path):
+    old_modes=imgs.read_seqs(old_path)
+    new_modes=imgs.read_seqs(new_path)
+    def add_helper(name_i):
+        old_i=old_modes[name_i]
+        new_i=new_modes[name_i]
+        new_i=preproc.rescale.scale(new_i ,64,64)
+        return np.concatenate([old_i,new_i],axis=1)
+    unified={ name_i:add_helper(name_i) for name_i in list(new_modes.keys())}
+    imgs.save_seqs(unified,out_path)
