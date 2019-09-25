@@ -1,15 +1,30 @@
 import cv2,numpy as np
 import files
 
+class Pipeline(object):
+    def __init__(self,transforms):
+        self.transforms=transforms
+
+    def __call__(self,frame_i):
+        frame_i=self.transforms[0](frame_i)
+        for transform_j in self.transforms[1:]:
+            frame_i=transform_j(frame_i)
+        return frame_i
+
 def transform(in_path,out_path,frame_fun,single_frame=False):
+    if(type(frame_fun)==list):
+        frame_fun=Pipeline(frame_fun)
     img_seqs=read_seqs(in_path)
     if(single_frame):
-        new_seqs={ name_i:[frame_fun(frame_j) for frame_j in seq_i]
-                    for name_i,seq_i in img_seqs.items()}
+        new_seqs=frame_tranform(frame_fun,img_seqs)
     else:
         new_seqs={ name_i: frame_fun(seq_i)
                     for name_i,seq_i in img_seqs.items()}
     save_seqs(new_seqs,out_path)
+
+def frame_tranform(frame_fun,img_seqs):
+    return { name_i:[frame_fun(frame_j) for frame_j in seq_i]
+                    for name_i,seq_i in img_seqs.items()}
 
 def read_seqs(in_path):
     seqs={}
