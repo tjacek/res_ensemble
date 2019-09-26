@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.interpolate import CubicSpline
 from scipy.stats import skew,pearsonr
 import imgs,files
 
@@ -30,6 +31,7 @@ def compute(in_path,out_path):
         feat_seq_i=np.array([extract(frame_i) for frame_i in seq_i])
         name_i=name_i.split('.')[0]+'.txt'
         out_i=out_path+'/'+name_i
+        feat_seq_i=upsampling(feat_seq_i)
         np.savetxt(out_i,feat_seq_i,delimiter=',')
 
 def area(frame_i):
@@ -47,3 +49,16 @@ def moments(points):
 def corl(points):
     x,y,z=points[0],points[1],points[2]
     return [pearsonr(x,y)[0],pearsonr(z,y)[0],pearsonr(x,z)[0]]
+
+def upsampling(seq_j):
+    feats=[spline(feat_i) for feat_i in np.array(seq_j).T]
+    return np.array(feats).T
+
+def spline(feat_i,new_size=128):
+    old_size=feat_i.shape[0]
+    old_x=np.arange(old_size).astype(float)  
+    step=float(new_size)/float(old_size)
+    old_x*=step     
+    cs=CubicSpline(old_x,feat_i)
+    new_size=np.arange(new_size)  
+    return cs(new_size)
