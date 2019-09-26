@@ -10,9 +10,13 @@ from keras.layers.merge import add
 from keras.models import load_model
 import data,files
 
-def train_model(in_path):
-    feat_dict=read_local_feats(in_path)
-    print(len(feat_dict))
+def train_model(in_path,n_epochs=1000):
+    train,test,params=load_data(in_path)
+    model=make_conv(params)
+    model.fit(train[0],train[1],epochs=n_epochs,batch_size=100)
+    score = model.evaluate(test[0],test[1], verbose=0)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
 
 def read_local_feats(in_path):
     paths=files.top_files(in_path)
@@ -22,6 +26,47 @@ def read_local_feats(in_path):
         feat_dict[name_i]=np.loadtxt(path_i,delimiter=",")
     return feat_dict
 
+def load_data(in_path):   
+    feat_dict=read_local_feats(in_path)
+    train,test=data.split(feat_dict.keys())
+    train,test=prepare_data(train,feat_dict),prepare_data(test,feat_dict)
+    params={'ts_len':train[0].shape[1],'n_feats':train[0].shape[2],'n_cats': train[1].shape[1]}
+    return train,test,params
+
+def prepare_data(names,feat_dict):
+#    X=norm.normalize(X,'all')
+    X=np.array([feat_dict[name_i] for name_i in names])
+    X=np.expand_dims(X,axis=-1)
+    y=[data.parse_name(name_i)[0]-1 for name_i in names]
+    y=keras.utils.to_categorical(y)
+    return X,y
+
+def make_conv(params):
+    input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
+    activ='relu' #'elu'
+    pool1=add_conv_layer(input_layer,0,activ=activ)
+    pool2=add_conv_layer(pool1,1,activ=activ)
+    kernel_regularizer=regularizers.l1(0.001)
+    hidden_layer = Dense(100,name='hidden', activation=activ,
+                         kernel_regularizer=kernel_regularizer)(Flatten()(pool2))
+   
+    hidden_layer=BatchNormalization()(hidden_layer)
+    drop1=Dropout(0.5)(hidden_layer)
+    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
+    model=Model(inputs=input_layer, outputs=output_layer)
+    model.compile(loss=keras.losses.categorical_crossentropy,
+              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True),
+             metrics=['accuracy'])
+    model.summary()
+    return model
+
+def add_conv_layer(input_layer,i=0,n_kerns=8,activ='relu',
+                    kern_size=(8,1),pool_size=(4,1)):
+    i=str(i)
+    conv1=Conv2D(n_kerns, kernel_size=kern_size,
+            activation=activ,name='conv'+i)(input_layer)
+    pool1=MaxPooling2D(pool_size=pool_size,name='pool'+i)(conv1)
+    return pool1#BatchNormalization()(pool1)
 
 #def extract_feats(frame_path,model_path,out_path):
 #    model=load_model(model_path)
@@ -70,18 +115,6 @@ def read_local_feats(in_path):
 #    model.fit(train_X,train_y,epochs=n_epochs,batch_size=100)
 #    return model,(test_X,test_y)
 
-#def load_data(in_path):
-#    (train_X,train_y,names),(test_X,test_y,names)=data.img_dataset(in_path)
-#    params={'ts_len':train_X[0].shape[0],'n_feats':train_X[0].shape[1],
-#            'n_cats': max(test_y)+1}
-#    return prepare_data(train_X,train_y),prepare_data(test_X,test_y),params
-
-#def prepare_data(X,y):
-#    X=norm.normalize(X,'all')
-#    X= np.expand_dims(np.array(X),-1)
-#    y=keras.utils.to_categorical(y)
-#    return X,y
-
 #def make_res(params):
 #    input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
 #    activ='relu' #'elu'
@@ -98,33 +131,6 @@ def read_local_feats(in_path):
 #              optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
 #    model.summary()
 #    return model
-
-def make_conv(params):
-    input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
-    activ='relu' #'elu'
-    pool1=add_conv_layer(input_layer,0,activ=activ)
-    pool2=add_conv_layer(pool1,1,activ=activ)
-    kernel_regularizer=regularizers.l1(0.001)
-    hidden_layer = Dense(100,name='hidden', activation=activ,
-                         kernel_regularizer=kernel_regularizer)(Flatten()(pool2))
-   
-    #hidden_layer=BatchNormalization()(hidden_layer)
-    drop1=Dropout(0.5)(hidden_layer)
-    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
-    model=Model(inputs=input_layer, outputs=output_layer)
-    model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True),
-             metrics=['accuracy'])
-    model.summary()
-    return model
-
-#def add_conv_layer(input_layer,i=0,n_kerns=8,activ='relu',
-#                    kern_size=(8,1),pool_size=(4,1)):
-#    i=str(i)
-#    conv1=Conv2D(n_kerns, kernel_size=kern_size,
-#            activation=activ,name='conv'+i)(input_layer)
-#    pool1=MaxPooling2D(pool_size=pool_size,name='pool'+i)(conv1)
-#    return pool1#BatchNormalization()(pool1)
 
 #def add_res_layer(input_layer,n_hidden=64,activ='relu',l1=False,name=None):
 #    ker_reg=regularizers.l1(0.01) if(l1) else None
