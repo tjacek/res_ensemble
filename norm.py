@@ -8,7 +8,7 @@ def normalize(X,mode='all'):
 def norm_seq(x_i):
     mean_i=np.mean(x_i,axis=0)
     std_i=np.std(x_i,axis=0)
-    return norm_template(X,mean_i,std_i)
+    return norm_template(x_i,mean_i,std_i)
 
 def norm_all(X):
     new_X=np.concatenate(X)

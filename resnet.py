@@ -8,7 +8,7 @@ from keras import regularizers
 from keras.layers.normalization import BatchNormalization
 from keras.layers.merge import add
 from keras.models import load_model
-import data,files
+import data,files,norm
 
 def train_model(in_path,n_epochs=1000):
     train,test,params=load_data(in_path)
@@ -34,8 +34,8 @@ def load_data(in_path):
     return train,test,params
 
 def prepare_data(names,feat_dict):
-#    X=norm.normalize(X,'all')
     X=np.array([feat_dict[name_i] for name_i in names])
+    X=norm.normalize(X,'all')
     X=np.expand_dims(X,axis=-1)
     y=[data.parse_name(name_i)[0]-1 for name_i in names]
     y=keras.utils.to_categorical(y)
@@ -60,7 +60,7 @@ def make_conv(params):
     model.summary()
     return model
 
-def add_conv_layer(input_layer,i=0,n_kerns=8,activ='relu',
+def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
                     kern_size=(8,1),pool_size=(4,1)):
     i=str(i)
     conv1=Conv2D(n_kerns, kernel_size=kern_size,
@@ -114,26 +114,3 @@ def add_conv_layer(input_layer,i=0,n_kerns=8,activ='relu',
 #    model=make_conv(params)
 #    model.fit(train_X,train_y,epochs=n_epochs,batch_size=100)
 #    return model,(test_X,test_y)
-
-#def make_res(params):
-#    input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
-#    activ='relu' #'elu'
-#    pool1=add_conv_layer(input_layer,activ=activ)
-#    pool2=add_conv_layer(pool1,activ=activ)
-
-    #res_layer1=add_res_layer(Flatten()(pool2),n_hidden=100,activ=activ,l1=True)
-#    res_layer2=add_res_layer(Flatten()(pool2),n_hidden=64,activ=activ,l1=True,name="hidden")
-    
-#    drop1=Dropout(0.5)(res_layer2)
-#    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
-#    model=Model(inputs=input_layer, outputs=output_layer)
-#    model.compile(loss=keras.losses.categorical_crossentropy,
-#              optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True))
-#    model.summary()
-#    return model
-
-#def add_res_layer(input_layer,n_hidden=64,activ='relu',l1=False,name=None):
-#    ker_reg=regularizers.l1(0.01) if(l1) else None
-#    hidden_layer = Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(input_layer)   
-#    hidden_layer2=Dense(n_hidden, activation=activ,kernel_regularizer=ker_reg)(hidden_layer)
-#    return add([hidden_layer, hidden_layer2],name=name)
