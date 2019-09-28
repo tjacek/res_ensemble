@@ -23,6 +23,11 @@ def parse_name(action_i):
     digits=re.findall(r'\d+',name_i)
     return int(digits[0]),int(digits[1])
 
+def clean_name(action_i):
+    name_i=action_i.split('/')[-1]
+    raw=[s_i.lstrip("0") for s_i in re.findall(r'\d+',name_i)]
+    return "_".join(raw)
+
 def to_dataset(names,img_seq):
     X,y=[],[]
     for name_i in names:

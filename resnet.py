@@ -44,6 +44,7 @@ def read_local_feats(in_path):
     feat_dict={}
     for path_i in paths:
         name_i=path_i.split("/")[-1]
+        name_i=data.clean_name(path_i)
         feat_dict[name_i]=np.loadtxt(path_i,delimiter=",")
     return feat_dict
 
@@ -82,6 +83,12 @@ def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
     pool1=MaxPooling2D(pool_size=pool_size,name='pool'+i)(conv1)
     return pool1#BatchNormalization()(pool1)
 
+def concat_feats(in_path1,in_path2,out_path):
+    seq_dict1,seq_dict2=read_local_feats(in_path1),read_local_feats(in_path2)
+    unified_dict={ name_i:np.concatenate([ seq_i,seq_dict2[name_i]],axis=1)  
+                    for name_i,seq_i in seq_dict1.items()}       
+    extract.save_seqs(unified_dict,out_path)
+
 #def train_conv(in_path,out_path=None,n_epochs=100):
 #    model,(test_X,test_y)=train_model(in_path,n_epochs)
 #    raw_pred=model.predict(test_X,batch_size=100)
@@ -91,29 +98,3 @@ def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
 #    print(classification_report(test_y, pred_y,digits=4))
 #    if(out_path):
 #        model.save(out_path)
-
-#def pretrained_model(in_path,nn_path,out_path=None,n_epochs=100):
-#    (train_X,train_y),(test_X,test_y),params=load_data(in_path)
-#    pretrain_model=load_model(nn_path)
-#    pretrain_model.summary()
-#    hidden=pretrain_model.get_layer("hidden").output
-#    drop=Dropout(0.5)(hidden)
-#    output=Dense(units=params['n_cats'], activation='softmax')(drop) 
-#    model=Model(inputs=pretrain_model.input, outputs=output)
-#    model.compile(loss=keras.losses.categorical_crossentropy,
-#              optimizer=keras.optimizers.SGD(lr=0.01,  momentum=0.9, nesterov=True),
-#              metrics=['accuracy'])
-#    model.summary()
-#    model.fit(train_X,train_y,epochs=n_epochs,batch_size=100)
-#    score = model.evaluate(test_X,test_y, verbose=0)
-#    print('Test loss:', score[0])
-#    print('Test accuracy:', score[1])
-#    if(out_path):
-#        model.save(out_path)
-
-#def train_model(in_path,n_epochs):
-#    (train_X,train_y),(test_X,test_y),params=load_data(in_path)
-#    print(params)
-#    model=make_conv(params)
-#    model.fit(train_X,train_y,epochs=n_epochs,batch_size=100)
-#    return model,(test_X,test_y)
