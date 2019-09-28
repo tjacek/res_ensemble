@@ -1,6 +1,16 @@
 import numpy as np
 import keras.utils
-import imgs,data,basic,models
+from keras.models import load_model
+import imgs,data,basic,models,extract
+
+def extract_person(frame_path,model_path,out_path):
+    seq_dict=imgs.read_seqs(frame_path)
+    model=load_model(model_path)
+    feat_dict={} 
+    for name_i,seq_i in seq_dict.items():
+        seq_i= data.format_frames(seq_i)
+        feat_dict[name_i]=model.predict(seq_i)
+    extract.save_seqs(feat_dict,out_path)
 
 def person_model(in_path,out_path,n_epochs=100):
     seq_dict=imgs.read_seqs(in_path)
