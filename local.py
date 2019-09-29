@@ -23,7 +23,7 @@ def nonzero_points(frame_i):
     xy_nonzero,z_nozero=np.array(xy_nonzero),np.expand_dims(z_nozero,axis=0)
     return np.concatenate([xy_nonzero,z_nozero],axis=0)
 
-def compute(in_path,out_path):
+def compute(in_path,out_path,upsample=False):
     seq_dict=imgs.read_seqs(in_path)
     extract=Extractor()
     files.make_dir(out_path)
@@ -31,7 +31,8 @@ def compute(in_path,out_path):
         feat_seq_i=np.array([extract(frame_i) for frame_i in seq_i])
         name_i=name_i.split('.')[0]+'.txt'
         out_i=out_path+'/'+name_i
-        feat_seq_i=upsampling(feat_seq_i)
+        if(upsample):
+            feat_seq_i=upsampling(feat_seq_i)
         np.savetxt(out_i,feat_seq_i,delimiter=',')
 
 def area(frame_i):

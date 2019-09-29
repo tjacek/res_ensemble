@@ -85,16 +85,12 @@ def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
 
 def concat_feats(in_path1,in_path2,out_path):
     seq_dict1,seq_dict2=read_local_feats(in_path1),read_local_feats(in_path2)
-    unified_dict={ name_i:np.concatenate([ seq_i,seq_dict2[name_i]],axis=1)  
-                    for name_i,seq_i in seq_dict1.items()}       
+    unified_dict={}
+    for name_i,seq_i in seq_dict1.items():
+        seq1,seq2=equal_seqs(seq_i,seq_dict2[name_i])
+        unified_dict[name_i]=np.concatenate([ seq1,seq2],axis=1)                      
     extract.save_seqs(unified_dict,out_path)
 
-#def train_conv(in_path,out_path=None,n_epochs=100):
-#    model,(test_X,test_y)=train_model(in_path,n_epochs)
-#    raw_pred=model.predict(test_X,batch_size=100)
-#    pred_y,test_y=np.argmax(raw_pred,axis=1),np.argmax(test_y,axis=1)
-#    print(pred_y)
-#    print(test_y)
-#    print(classification_report(test_y, pred_y,digits=4))
-#    if(out_path):
-#        model.save(out_path)
+def equal_seqs(seq1,seq2):
+    seq_len=min(seq1.shape[0],seq2.shape[0])
+    return seq1[:seq_len],seq2[:seq_len]
