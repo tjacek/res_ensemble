@@ -2,9 +2,10 @@ import numpy as np
 import imgs
 
 def box_frame(in_path,out_path):
-    img_seqs=imgs.read_seqs(in_path)
-    box_seqs={ name_i:extract_box(seq_i) for name_i,seq_i in img_seqs.items()}
-    imgs.save_seqs(box_seqs,out_path)
+    imgs.transform(in_path,out_path,extract_box,single_frame=False)
+#    img_seqs=imgs.read_seqs(in_path)
+#    box_seqs={ name_i:extract_box(seq_i) for name_i,seq_i in img_seqs.items()}
+#    imgs.save_seqs(box_seqs,out_path)
 
 def extract_box(frames):
     bound_seq=np.array([frame_bounds(frame_i) for frame_i in frames])

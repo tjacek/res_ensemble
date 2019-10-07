@@ -14,36 +14,46 @@ class Pipeline(object):
 def transform(in_path,out_path,frame_fun,single_frame=False):
     if(type(frame_fun)==list):
         frame_fun=Pipeline(frame_fun)
-    img_seqs=read_seqs(in_path)
-    if(single_frame):
-        new_seqs=frame_tranform(frame_fun,img_seqs)
-    else:
-        new_seqs={ name_i: frame_fun(seq_i)
-                    for name_i,seq_i in img_seqs.items()}
-    save_seqs(new_seqs,out_path)
+    files.make_dir(out_path)
+    print(in_path)
+    for in_i in files.top_files(in_path):
+        out_i=out_path+'/'+in_i.split('/')[-1]
+        print(out_i)
+        frames=read_frames(in_i)
+        if(single_frame):
+            new_frames=[frame_fun(frame_j) for frame_j in frames]
+        else:
+            new_frames=frame_fun(frames)
+        save_frames(out_i,new_frames)
 
-def frame_tranform(frame_fun,img_seqs):
+def seq_tranform(frame_fun,img_seqs):
     return { name_i:[frame_fun(frame_j) for frame_j in seq_i]
                     for name_i,seq_i in img_seqs.items()}
 
 def read_seqs(in_path):
     seqs={}
     for seq_path_i in files.top_files(in_path):
-        frames=[ cv2.imread(frame_path_j, cv2.IMREAD_GRAYSCALE)
-                    for frame_path_j in files.top_files(seq_path_i)]
+        frames=read_frames(seq_path_i)
         name_i=seq_path_i.split('/')[-1]
         print(name_i)
         seqs[name_i]=frames
-    return seqs	
+    return seqs    
 
 def save_seqs(seq_dict,out_path):
     files.make_dir(out_path)
     for name_i,seq_i in seq_dict.items():
         seq_path_i=out_path+'/'+name_i
-        files.make_dir(seq_path_i)
-        for j,frame_j in enumerate(seq_i):     
-            frame_name_j=seq_path_i+'/'+str(j)+".png"
-            cv2.imwrite(frame_name_j,frame_j)
+        save_frames(seq_path_i,seq_i)
+
+def read_frames(seq_path_i):
+    return [ cv2.imread(frame_path_j, cv2.IMREAD_GRAYSCALE)
+                for frame_path_j in files.top_files(seq_path_i)]
+
+def save_frames(seq_path_i,seq_i):
+    files.make_dir(seq_path_i)
+    for j,frame_j in enumerate(seq_i):     
+        frame_name_j=seq_path_i+'/'+str(j)+".png"
+        cv2.imwrite(frame_name_j,frame_j)
 
 def concat(in_path1,in_path2,out_path):
     seq1,seq2=read_seqs(in_path1),read_seqs(in_path2)
