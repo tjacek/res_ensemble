@@ -18,8 +18,9 @@ def to_imgs(frames,img_path):
         cv2.imwrite(frame_name_j,frame_j)
 
 def standarize(frames):
+    frames=frames.astype(float)
     frames=np.array(frames)
-    frames-= (np.amin(frames[frames!=0]) -10)
+    frames[frames!=0]-= (np.amin(frames[frames!=0]) -10) 
     frames/=np.amax(frames)
     frames*=240.0
     frames= np.abs(frames-250)
