@@ -40,13 +40,16 @@ def make_exp(n_cats,n_channels):
     X = convolutional_block(X, f = 3, filters = [16, 16, 32], stage = 1, block='a', s = 2)
     X = convolutional_block(X, f = 3, filters = [16, 16, 32], stage = 2, block='a', s = 2)
 
-    dense1 = Dense(100, activation='relu',name='hidden')(Flatten()(X))   
+    reg=regularizers.l1(0.01)
+    dense1 = Dense(100, activation='relu',name='hidden',kernel_regularizer=reg)(Flatten()(X))   
 
     drop1=Dropout(0.5)(dense1)
     output_layer = Dense(units=n_cats, activation='softmax')(drop1)
     model=Model(inputs=X_input, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.Adadelta())
+              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
+ 
+              #optimizer=keras.optimizers.Adadelta())
     model.summary()
     return model
 
@@ -56,32 +59,24 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
-    # Retrieve Filters
     F1, F2, F3 = filters
 
-    # Save the input value
     X_shortcut = X
 
-    ##### MAIN PATH #####
-    # First component of main path 
     X = Conv2D(filters=F1, kernel_size=(1, 1), strides=(s, s), padding='valid', name=conv_name_base + '2a', kernel_initializer=glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis=3, name=bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    # Second component of main path
     X = Conv2D(filters=F2, kernel_size=(f, f), strides=(1, 1), padding='same', name=conv_name_base + '2b', kernel_initializer=glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis=3, name=bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
-    # Third component of main path
     X = Conv2D(filters=F3, kernel_size=(1, 1), strides=(1, 1), padding='valid', name=conv_name_base + '2c', kernel_initializer=glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis=3, name=bn_name_base + '2c')(X)
 
-    ##### SHORTCUT PATH #### 
     X_shortcut = Conv2D(filters=F3, kernel_size=(1, 1), strides=(s, s), padding='valid', name=conv_name_base + '1', kernel_initializer=glorot_uniform(seed=0))(X_shortcut)
     X_shortcut = BatchNormalization(axis=3, name=bn_name_base + '1')(X_shortcut)
 
-    # Final step: Add shortcut value to main path, and pass it through a RELU activation
     X = Add()([X, X_shortcut])
     X = Activation('relu')(X)
 
