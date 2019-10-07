@@ -1,10 +1,8 @@
 import numpy as np
 import imgs
-from preproc.binary import standarize 
 
 def box_frame(in_path,out_path):
-    imgs.transform(in_path,out_path,[extract_box,standarize],single_frame=False)
-
+    imgs.transform(in_path,out_path,extract_box,single_frame=False)
 
 def extract_box(frames):
     bound_seq=np.array([frame_bounds(frame_i) for frame_i in frames])

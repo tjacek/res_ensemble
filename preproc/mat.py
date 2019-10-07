@@ -1,6 +1,7 @@
 import scipy.io
 import cv2
 import files
+from preproc.binary import standarize 
 
 def convert(in_path,out_path):
     paths=files.top_files(in_path)
@@ -13,4 +14,5 @@ def convert(in_path,out_path):
         seq_i=mat_i['d_depth']
         for j,frame_j in enumerate(seq_i.T):
             frame_name_j=out_i+'/'+str(j)+".png"
-            cv2.imwrite(frame_name_j,frame_j.T)
+            frame_j= standarize(frame_j.T) 
+            cv2.imwrite(frame_name_j,frame_j)

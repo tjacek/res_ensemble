@@ -24,7 +24,7 @@ def standarize(frames):
     frames/=np.amax(frames)
     frames*=240.0
     frames= np.abs(frames-250)
-    frames[frames>245]=0
+    frames[frames>249]=0
     return frames
 
 def from_binary(action_path):

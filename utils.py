@@ -1,6 +1,21 @@
 import os.path, numpy as np
 import basic,extract,feats,ens,files,imgs
-import preproc.agum,preproc.rescale
+import preproc.agum,preproc.rescale,preproc.box
+
+def make_frames(in_path):
+    cur_dir=os.path.split(in_path)[0]
+    box_path,proj_path= cur_dir+'/box',cur_dir+'/proj'
+    scale_path,time_path,full_path=cur_dir+'/scale',cur_dir+'/time',cur_dir+'/full'
+    if(not os.path.isdir(box_path)):
+        preproc.box.box_frame(in_path,box_path)
+    if(not os.path.isdir(proj_path)):
+        preproc.rescale.projection(box_path,proj_path)
+    if(not os.path.isdir(scale_path)):
+        preproc.rescale.rescale(box_path,scale_path)
+    if(not os.path.isdir(time_path)):
+        preproc.rescale.time(scale_path,time_path)
+    if(not os.path.isdir(full_path)):
+        imgs.concat(time_path,proj_path,full_path)
 
 def ensemble_models(frame_path,agum_path=None,n_epochs=15):
     agum_path=frame_path if(not agum_path) else agum_path

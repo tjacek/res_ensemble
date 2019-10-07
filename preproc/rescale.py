@@ -3,16 +3,13 @@ import cv2
 import imgs
 
 def rescale(in_path,out_path,dim_x=64,dim_y=64):
-    def scale_helper(seq_i):
-        return [cv2.resize(frame_j,(dim_x,dim_y), interpolation = cv2.INTER_CUBIC)
-                    for frame_j in seq_i] 
-    imgs.transform(in_path,out_path,scale_helper)
+    imgs.transform(in_path,out_path,scale,single_frame=True)
 
-def pairs(in_path,out_path):
-    def pair_helper(seq_i):
+def time(in_path,out_path):
+    def pairs(seq_i):
         return [np.concatenate([seq_i[j],seq_i[j+1]]) 
-                    for j in range(len(seq_i)-1)] 
-    imgs.transform(in_path,out_path,pair_helper)
+                for j in range(len(seq_i)-1)] 
+    imgs.transform(in_path,out_path,pairs,single_frame=False)
 
 def projection(in_path,out_path,dim_x=64,dim_y=64):
     def proj_helper(frame_i):
@@ -26,10 +23,10 @@ def proj(frame_i,dim=True):
     dim=int(dim)
     max_values=np.amax(points,axis=0)
     max_x,max_y=max_values[dim],max_values[2]
-    proj_i=np.zeros((max_x+5,max_y+5))
+    proj_i=np.zeros((max_x+5,max_y+5),dtype=float)
     for point_j in points:
         x_j,y_j=int(point_j[dim]),int(point_j[2])
-        proj_i[x_j][y_j]=1.0
+        proj_i[x_j][y_j]=100.0
     return proj_i
 
 def to_points(frame_i):
@@ -41,13 +38,13 @@ def to_points(frame_i):
     return np.array(points)
 
 def smooth_proj(proj_i,dim_x,dim_y):
-    binary_img=remove_isol(proj_i)
+#    binary_img=proj_i#remove_isol(proj_i)
     kernel2= np.ones((7,7),np.uint8)
-    binary_img = cv2.dilate(binary_img,kernel2,iterations = 1)
-    binary_img[binary_img!=0]=200.0
-    return scale(binary_img ,dim_x,dim_y)
+    proj_i = cv2.dilate(proj_i,kernel2,iterations = 1)#
+    proj_i[proj_i!=0]=200.0
+    return scale(proj_i ,dim_x,dim_y)
 
-def scale(binary_img ,dim_x,dim_y):
+def scale(binary_img ,dim_x=64,dim_y=54):
     if(type(binary_img)==list):
         return [  scale(frame_i,dim_x,dim_y) for frame_i in binary_img]
     return cv2.resize(binary_img,(dim_x,dim_y), interpolation = cv2.INTER_CUBIC)
