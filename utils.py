@@ -17,11 +17,11 @@ def make_frames(in_path):
     if(not os.path.isdir(full_path)):
         imgs.concat(time_path,proj_path,full_path)
 
-def ensemble_models(frame_path,agum_path=None,n_epochs=15):
+def ensemble_models(frame_path,agum_path=None,n_epochs=15,model_type='exp'):
     agum_path=frame_path if(not agum_path) else agum_path
     cur_dir=os.path.split(agum_path)[0]
     nn_path,seq_path,feat_path=cur_dir+'/binary_nn',cur_dir+'/binary_seq',cur_dir+'/binary_feats'
-    ens.train_binary_model(frame_path,nn_path,n_epochs=n_epochs)
+    ens.train_binary_model(frame_path,nn_path,n_epochs=n_epochs,model_type=model_type)
     ens.binary_extract(frame_path,nn_path,seq_path)
     ens.binary_feats(seq_path,feat_path)
 

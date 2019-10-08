@@ -6,23 +6,12 @@ from keras.layers.merge import add
 from keras import regularizers
 from keras.initializers import glorot_uniform
 
-def make_conv(n_cats,n_channels):
-    model = Sequential()
-    model.add(Conv2D(16, kernel_size=(5, 5),
-                 activation='relu',
-                 input_shape=(64,64,n_channels)))
-    model.add(MaxPooling2D(pool_size=(4, 4)))
-    model.add(Conv2D(16, kernel_size=(5, 5),
-                 activation='relu',input_shape=(64,64,4)))
-    model.add(MaxPooling2D(pool_size=(4, 4)))
-    model.add(Flatten())
-    model.add(Dense(100, activation='relu',name="hidden",kernel_regularizer=regularizers.l1(0.01),))
-    model.add(Dropout(0.5))
-    model.add(Dense(units=n_cats, activation='softmax'))
-    model.compile(loss=keras.losses.categorical_crossentropy,
-              #optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
-              optimizer=keras.optimizers.Adadelta())
-    return model
+import models.old
+
+def get_model_factory(model_type):
+    if(model_type=="old"):
+        return models.old.make_conv
+    return make_exp
 
 def make_exp(n_cats,n_channels):
     X_input = Input(shape=(64,64,n_channels))
