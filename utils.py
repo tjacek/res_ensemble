@@ -1,5 +1,5 @@
 import os.path, numpy as np
-import basic,extract,feats,ens,files,imgs,persons
+import basic,extract,feats,ens,files,imgs,persons,resnet
 import preproc.agum,preproc.rescale,preproc.box
 
 def make_frames(in_path):
@@ -31,6 +31,12 @@ def person_features(frame_path,n_epochs=100):
     feat_path=cur_dir+'/person_feats'
     persons.person_model(frame_path,model_path,n_epochs)
     persons.extract_person(frame_path,model_path,feat_path)
+
+def ts_features(seq_path,n_epochs=1000):
+    cur_dir=os.path.split(seq_path)[0]
+    model_path,feat_path=cur_dir+'/ts_nn',cur_dir+'/ts_feats.txt'
+    resnet.train_model(seq_path,model_path,n_epochs)
+    resnet.extract_feats(seq_path,model_path,feat_path)
 
 def extract(frame_path,nn_path,seq_path,k=15):
     nn_paths=files.top_files(nn_path)[k:]
