@@ -1,7 +1,17 @@
+import numpy as np
 import scipy.io
 import cv2
 import files
 from preproc.binary import standarize 
+
+def convert_inert(in_path,out_path):
+    paths=files.top_files(in_path)
+    files.make_dir(out_path)
+    for path_i in paths:
+        out_i= out_path +'/' +path_i.split('/')[-1]
+        mat_i = scipy.io.loadmat(path_i)
+        mat_i=mat_i['d_iner']
+        np.savetxt(out_i,mat_i,delimiter=',')
 
 def convert(in_path,out_path):
     paths=files.top_files(in_path)
