@@ -1,14 +1,7 @@
 import numpy as np
 import keras,keras.utils
-from keras.models import Model,Sequential
-from keras.layers import Input,Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from sklearn.metrics import classification_report
-from keras import regularizers
-from keras.layers.normalization import BatchNormalization
-from keras.layers.merge import add
-from keras.models import load_model
 import data,files,norm,extract,feats
+import models.ts
 
 def extract_feats(frame_path,model_path,out_path):
     model=load_model(model_path)
@@ -20,7 +13,7 @@ def extract_feats(frame_path,model_path,out_path):
 
 def train_model(in_path,out_path=None,n_epochs=1000):
     train,test,params=load_data(in_path)
-    model=make_conv(params)
+    model=models.ts.make_conv(params)
     model.fit(train[0],train[1],epochs=n_epochs,batch_size=100)
     score = model.evaluate(test[0],test[1], verbose=0)
     print('Test loss:', score[0])
@@ -55,33 +48,6 @@ def prepare_data(names,feat_dict):
     y=[data.parse_name(name_i)[0]-1 for name_i in names]
     y=keras.utils.to_categorical(y)
     return X,y
-
-def make_conv(params):
-    input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
-    activ='relu' #'elu'
-    pool1=add_conv_layer(input_layer,0,activ=activ)
-    pool2=add_conv_layer(pool1,1,activ=activ)
-    kernel_regularizer=regularizers.l1(0.001)
-    hidden_layer = Dense(100,name='hidden', activation=activ,
-                         kernel_regularizer=kernel_regularizer)(Flatten()(pool2))
-   
-    hidden_layer=BatchNormalization()(hidden_layer)
-    drop1=Dropout(0.5)(hidden_layer)
-    output_layer = Dense(units=params['n_cats'], activation='softmax')(drop1)
-    model=Model(inputs=input_layer, outputs=output_layer)
-    model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True),
-             metrics=['accuracy'])
-    model.summary()
-    return model
-
-def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
-                    kern_size=(8,1),pool_size=(4,1)):
-    i=str(i)
-    conv1=Conv2D(n_kerns, kernel_size=kern_size,
-            activation=activ,name='conv'+i)(input_layer)
-    pool1=MaxPooling2D(pool_size=pool_size,name='pool'+i)(conv1)
-    return pool1#BatchNormalization()(pool1)
 
 def concat_feats(in_path1,in_path2,out_path):
     seq_dict1,seq_dict2=read_local_feats(in_path1),read_local_feats(in_path2)
