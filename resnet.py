@@ -11,9 +11,10 @@ def extract_feats(frame_path,model_path,out_path):
     feat_dict={ names[i]:feat_i for i,feat_i in enumerate(X_feats)}
     feats.save_feats(feat_dict,out_path)
 
-def train_model(in_path,out_path=None,n_epochs=1000):
+def train_model(in_path,out_path=None,n_epochs=1000,model_type="old"):
     train,test,params=load_data(in_path)
-    model=models.ts.make_conv(params)
+    make_models=model.ts.get_model_factory(model_type)
+    model=make_models(params)
     model.fit(train[0],train[1],epochs=n_epochs,batch_size=100)
     score = model.evaluate(test[0],test[1], verbose=0)
     print('Test loss:', score[0])
