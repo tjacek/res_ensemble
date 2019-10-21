@@ -2,14 +2,20 @@ import numpy as np
 import keras,keras.utils
 import data,files,norm,extract,feats
 import models.ts
+from keras.models import load_model
 
-def extract_feats(frame_path,model_path,out_path):
+def extract_feats(frame_path,model_path,out_path=None):
     model=load_model(model_path)
     extractor=extract.make_extractor(model)
     (X,y),names=load_data(frame_path,split=False)
     X_feats=extractor.predict(X)
+    return get_feat_dict(X_feats,names,out_path)
+
+def get_feat_dict(X_feats,names,out_path):
     feat_dict={ names[i]:feat_i for i,feat_i in enumerate(X_feats)}
-    feats.save_feats(feat_dict,out_path)
+    if(out_path):
+        feats.save_feats(feat_dict,out_path)
+    return feat_dict
 
 def train_model(in_path,out_path=None,n_epochs=1000,model_type="old"):
     train,test,params=load_data(in_path)

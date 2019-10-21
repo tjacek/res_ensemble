@@ -3,12 +3,25 @@ import numpy as np
 import resnet,models.ts
 import random
 
-def train(in_path,n_size=100):
+from keras.models import load_model
+from keras.models import Model
+
+def extract(frame_path,model_path,out_path=None):
+    model=load_model(model_path)
+    feat_layer=model.get_layer('sequential_1').get_output_at(-1)
+    extractor = Model(input=model.input,output=feat_layer)
+    (X,y),names=resnet.load_data(frame_path,split=False)
+    X_feats=extractor.predict([X,X])
+    resnet.get_feat_dict(X_feats,names,out_path)
+
+def train(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
     X,y=gen_data(X_train,y_train)
     make_models=models.ts.get_model_factory("sim")
-    model=make_models(params)
-    model.fit(X,y,epochs=100,batch_size=100)
+    sim_metric,model=make_models(params)
+    sim_metric.fit(X,y,epochs=n_epochs,batch_size=100)
+    if(out_path):
+        model.save(out_path)
 
 def gen_data(X_old,y_old):
     n_samples,n_cats=X_old.shape[0],y_old.shape[1]
@@ -25,4 +38,5 @@ def gen_data(X_old,y_old):
     return X,y        
 
 in_path="../MSR/sim_raw/agum"
-train(in_path,n_size=10000)
+#train(in_path,"sim_nn")
+extract(in_path,"sim_nn","sim_feats.txt")
