@@ -61,10 +61,13 @@ def add_mode(old_path,new_path,out_path):
     unified={ name_i:add_helper(name_i) for name_i in list(new_modes.keys())}
     imgs.save_seqs(unified,out_path)
 
-#def agum_seq(in_path):
-#    agum_path=in_path+"_agum"
-#    scale_path=in_path+"_agum_scale"
-#    time_path=in_path+"_agum_time"
-#    preproc.agum.agum_data(in_path,agum_path)
-#    preproc.rescale.rescale(agum_path,scale_path)
-#    preproc.rescale.pairs(scale_path,time_path)
+def ts_ensemble(seq_path,n_epochs=1000):
+    cur_dir=os.path.split(seq_path)[0]
+    model_path,feat_path=cur_dir+'/models',cur_dir+'/feats'
+    files.make_dir(model_path)
+    files.make_dir(feat_path)
+    for seq_i in files.top_files(seq_path):
+        id_i=seq_i.split('/')[-1]
+        model_i,feat_i=model_path+'/'+id_i,feat_path+'/'+id_i
+        resnet.train_model(seq_i,model_i,n_epochs)
+        resnet.extract_feats(seq_i,model_i,feat_i)
