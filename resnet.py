@@ -19,7 +19,7 @@ def get_feat_dict(X_feats,names,out_path):
 
 def train_model(in_path,out_path=None,n_epochs=1000,model_type="old"):
     train,test,params=load_data(in_path)
-    make_models=model.ts.get_model_factory(model_type)
+    make_models=models.ts.get_model_factory(model_type)
     model=make_models(params)
     model.fit(train[0],train[1],epochs=n_epochs,batch_size=100)
     score = model.evaluate(test[0],test[1], verbose=0)
