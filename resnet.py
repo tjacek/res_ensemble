@@ -45,8 +45,14 @@ def read_local_feats(in_path):
     for path_i in paths:
         name_i=path_i.split("/")[-1]
         name_i=data.clean_name(path_i)
-        feat_dict[name_i]=np.loadtxt(path_i,delimiter=",")
+        feat_dict[name_i]=load_seq(path_i)
     return feat_dict
+
+def load_seq(path_i):
+    postfix=path_i.split('.')[-1]
+    if(postfix=='txt'):
+        return np.loadtxt(path_i,delimiter=",")
+    return np.load(path_i)
 
 def prepare_data(names,feat_dict):
     X=np.array([feat_dict[name_i] for name_i in names])
