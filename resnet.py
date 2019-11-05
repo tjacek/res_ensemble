@@ -50,9 +50,9 @@ def read_local_feats(in_path):
 
 def load_seq(path_i):
     postfix=path_i.split('.')[-1]
-    if(postfix=='txt'):
+    if(postfix!='npy'):
         return np.loadtxt(path_i,delimiter=",")
-    return np.load(path_i)
+    return np.load(path_i)#,allow_pickle=True)
 
 def prepare_data(names,feat_dict):
     X=np.array([feat_dict[name_i] for name_i in names])
