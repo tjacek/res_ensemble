@@ -61,9 +61,14 @@ def add_mode(old_path,new_path,out_path):
     unified={ name_i:add_helper(name_i) for name_i in list(new_modes.keys())}
     imgs.save_seqs(unified,out_path)
 
-def ts_ensemble(seq_path,n_epochs=1000):
+def ts_ensemble(seq_path,n_epochs=1000,single=False):
     cur_dir=os.path.split(seq_path)[0]
-    model_path,feat_path=cur_dir+'/models',cur_dir+'/feats'
+    if(single):
+        model_path,feat_path=cur_dir+'/nn',cur_dir+'/feat'
+        resnet.train_model(seq_path,model_path,n_epochs)
+        resnet.extract_feats(seq_path,model_path,feat_path)
+        return
+    model_path,feat_path=cur_dir+'/models',cur_dir+'/feats'    
     files.make_dir(model_path)
     files.make_dir(feat_path)
     for seq_i in files.top_files(seq_path):
