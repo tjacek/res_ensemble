@@ -2,8 +2,19 @@ import numpy as np,cv2
 from scipy.ndimage import convolve1d
 import imgs,files 
 
-def motion_(in_path,out_path): 
-    imgs.transform(in_path,out_path,motion_helper)
+def transform(in_path,out_path,type="diff"):
+    single=False
+    if(type=="diff"):
+        fun=diff_helper
+    if(type=="motion"):
+        fun=motion_helper
+    if(type=="canny"):
+        fun= lambda img_i:cv2.Canny(img_i,100,200)
+        single=True
+    if(type=="smooth"):
+        fun= lambda img_i: cv2.GaussianBlur(img_i,(5,5),cv2.BORDER_DEFAULT)
+        single=True
+    imgs.transform(in_path,out_path,fun,single)
 
 def motion_helper(frames):
     kernel=triangual_kernel(len(frames))
@@ -20,9 +31,6 @@ def action_imgs(in_path,out_path="action_imgs"):
     for name_i,frames_i in action_dict.items():
         out_i=out_path+'/'+name_i.split(".")[0]+".png"
         cv2.imwrite(out_i,sum_imgs(frames_i))
-
-def diff(in_path,out_path):
-    imgs.transform(in_path,out_path,diff_seq)
 
 def diff_helper(frames):
     return[ np.abs(frames[i]-frames[i+1])
@@ -53,3 +61,4 @@ def parabolic_kernel(size):
     kernel=(1.0 - kernel**2)
     print(kernel)
     return kernel/np.sum(kernel)
+
