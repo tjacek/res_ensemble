@@ -2,7 +2,7 @@ import keras
 import numpy as np
 import resnet,models.ts
 import random
-
+import gc
 from keras.models import load_model
 from keras.models import Model
 
@@ -16,7 +16,7 @@ def extract(frame_path,model_path,out_path=None):
 
 def make_model(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
-    X,y=full_data(X_train,y_train)
+    X,y=random_data(X_train,y_train)
     make_models=models.ts.get_model_factory("sim")
     sim_metric,model=make_models(params)
     sim_metric.fit(X,y,epochs=n_epochs,batch_size=100)
@@ -50,6 +50,21 @@ def full_data(X_old,y_old):
     X=[X[:,0],X[:,1]]
     return X,y
 
-in_path="../MHAD/hc"
-#make_model(in_path,"../full_hc/nn",n_epochs=5)
-extract(in_path,"../full_hc/nn","../full_hc/feats.txt")
+def random_data(X_old,y_old,size=100):
+    n_samples=X_old.shape[0]
+    X,y=[],[]
+    for i in range(n_samples):
+        x_i,y_i=X_old[i],y_old[i]
+        indexes=[random.randint(0,n_samples-1) 
+                    for j in range(size)]
+        for j in indexes:
+            x_j,y_j=X_old[j],y_old[j]
+            X.append([x_i,x_j])
+            y.append(np.dot(y_i,y_j))
+    X,y=np.array(X),keras.utils.to_categorical(y)
+    X=[X[:,0],X[:,1]]
+    return X,y
+
+in_path="../MHAD/agum"
+#make_model(in_path,"../full_agum/nn",n_epochs=50)
+extract(in_path,"../full_agum/nn","../full_agum/feats.txt")
