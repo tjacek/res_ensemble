@@ -66,4 +66,5 @@ def siamese_model(params):
     
     optimizer = keras.optimizers.Adam(lr = 0.00006)
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer)
-    return siamese_net
+    extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
+    return siamese_net,extractor
