@@ -12,8 +12,10 @@ def transform(in_path,out_path,type="diff"):
         fun= lambda img_i:cv2.Canny(img_i,100,200)
         single=True
     if(type=="smooth"):
-        fun= lambda img_i: cv2.GaussianBlur(img_i,(5,5),cv2.BORDER_DEFAULT)
+        fun=smooth
         single=True
+    if(type=="noise"):
+        fun=lambda img_i:np.abs(img_i-smooth(img_i))
     imgs.transform(in_path,out_path,fun,single)
 
 def motion_helper(frames):
@@ -31,6 +33,9 @@ def action_imgs(in_path,out_path="action_imgs"):
     for name_i,frames_i in action_dict.items():
         out_i=out_path+'/'+name_i.split(".")[0]+".png"
         cv2.imwrite(out_i,sum_imgs(frames_i))
+
+def smooth(img_i):
+    return cv2.GaussianBlur(img_i,(5,5),cv2.BORDER_DEFAULT)
 
 def diff_helper(frames):
     return[ np.abs(frames[i]-frames[i+1])
