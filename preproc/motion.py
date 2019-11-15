@@ -3,17 +3,17 @@ from scipy.ndimage import convolve1d
 import imgs,files 
 
 def transform(in_path,out_path,type="diff"):
-    single=False
+    single=True
     if(type=="diff"):
         fun=diff_helper
+        single=False
     if(type=="motion"):
         fun=motion_helper
+        single=False
     if(type=="canny"):
         fun= lambda img_i:cv2.Canny(img_i,100,200)
-        single=True
     if(type=="smooth"):
         fun=smooth
-        single=True
     if(type=="noise"):
         fun=lambda img_i:np.abs(img_i-smooth(img_i))
     imgs.transform(in_path,out_path,fun,single)
