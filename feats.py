@@ -37,7 +37,13 @@ def save_feats(feat_dict,out_path):
     file_str.write(feat_txt)
     file_str.close()
 
-
 def read_seqs(in_path):
-    return { path_i.split('/')[-1]:np.loadtxt(path_i,delimiter=',') 
-                for path_i in files.top_files(in_path)}
+    seq_dict={}
+    for path_i in files.top_files(in_path):
+        postfix=in_path.split(".")[-1]
+        if(postfix=="npy"):
+            seq_i=np.loadtxt(path_i,delimiter=',')
+        else:
+            seq_i=np.load(path_i)
+        seq_dict[path_i.split('/')[-1]]=seq_i
+    return seq_dict

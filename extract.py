@@ -24,6 +24,6 @@ def make_extractor(model):
 def save_seqs(feat_dict,out_path):
     files.make_dir(out_path)
     for name_j,seq_j in feat_dict.items():
-        name_j=name_j.split('.')[0]+'.txt'
+        name_j=name_j.split('.')[0]#+'.txt'
         out_j=out_path+'/'+name_j
-        np.savetxt(out_j,seq_j, delimiter=',')
+        np.save(out_j,seq_j)#np.savetxt(out_j,seq_j, delimiter=',')
