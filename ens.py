@@ -24,11 +24,11 @@ def train_binary_model(in_path,out_path,n_epochs=150,model_type='exp'):
     n_cats,n_channels=data.get_params(X_train,y_train)
     X_train,y_train=basic.prepare_data(X_train,y_train,n_channels)
     X_test,y_test=basic.prepare_data(X_test,y_test,n_channels)
-    model_factory=models.get_model_factory(model_type)
+    model_factory,params=models.get_model_factory(model_type)
     files.make_dir(out_path)
     for cat_i in range(n_cats):        
         y_i=binarize(y_train,cat_i)
-        model=model_factory(2,n_channels)  #models.make_exp(2,n_channels)
+        model=model_factory(2,n_channels,params) 
         model.summary()
         model.fit(X_train,y_i,epochs=n_epochs,batch_size=256)
         out_i=out_path+'/nn'+str(cat_i)

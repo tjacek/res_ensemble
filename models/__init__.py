@@ -10,8 +10,10 @@ import models.old
 
 def get_model_factory(model_type):
     if(model_type=="old"):
-        return models.old.make_conv
-    return make_exp
+        return models.old.make_conv,None
+    if(model_type=="old_batch"):
+        return models.old.make_conv,{'batch':True}
+    return make_exp,None
 
 def make_exp(n_cats,n_channels):
     X_input = Input(shape=(64,64,n_channels))
