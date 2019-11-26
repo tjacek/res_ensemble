@@ -15,7 +15,7 @@ def get_model_factory(model_type):
         return models.old.make_conv,{'batch':True}
     return make_exp,None
 
-def make_exp(n_cats,n_channels):
+def make_exp(n_cats,n_channels,params=None):
     X_input = Input(shape=(64,64,n_channels))
     
     # Zero-Padding
