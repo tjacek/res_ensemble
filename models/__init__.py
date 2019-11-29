@@ -14,7 +14,9 @@ def get_model_factory(model_type):
     if(model_type=="old_batch"):
         return models.old.make_conv,{'batch':True}
     if(model_type=="old_small"):
-        return models.old.make_conv,{'hidden':64}
+        return models.old.make_conv,{'hidden':80}
+    if(model_type=="old_kerns64"):
+        return models.old.make_conv,{'n_kerns1':64}
     return make_exp,None
 
 def make_exp(n_cats,n_channels,params=None):

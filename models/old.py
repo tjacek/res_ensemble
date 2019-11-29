@@ -6,8 +6,9 @@ from keras import regularizers
     
 def make_conv(n_cats,n_channels,params=None):
     n_hidden=params['hidden'] if(params and ('hidden' in params)) else 100
+    n_kerns1=params['n_kerns1'] if(params and ('n_kerns1' in params)) else 16
     model = Sequential()
-    model.add(Conv2D(16, kernel_size=(5, 5),
+    model.add(Conv2D(n_kerns1, kernel_size=(5, 5),
                  activation='relu',
                  input_shape=(64,64,n_channels)))
     model.add(MaxPooling2D(pool_size=(4, 4)))
