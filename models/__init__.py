@@ -17,6 +17,8 @@ def get_model_factory(model_type):
         return models.old.make_conv,{'hidden':80}
     if(model_type=="old_kerns64"):
         return models.old.make_conv,{'n_kerns1':64}
+    if(model_type=="pyr"):
+        return models.old.make_pyramid,None
     return make_exp,None
 
 def make_exp(n_cats,n_channels,params=None):
@@ -87,12 +89,10 @@ def make_res(n_cats,n_channels):
     conv1=Conv2D(16, kernel_size=(5,5),
             activation=activ)(input_layer)
     pool1=MaxPooling2D(pool_size=(4,4))(conv1)
-#    pool1=BatchNormalization()(pool1)
 
     conv2=Conv2D(16, kernel_size=(5,5),
             activation=activ)(pool1)
     pool2=MaxPooling2D(pool_size=(4,4))(conv1)
-#    pool2=BatchNormalization()(pool2)
 
     n_hidden=100
     
@@ -116,53 +116,45 @@ def make_res(n_cats,n_channels):
     model.summary()
     return model
 
-def make_exp1(n_cats,n_channels):
-    model = Sequential()
-    model.add(Conv2D(24, kernel_size=(5, 5),
-                 activation='relu',
-                 input_shape=(64,64,n_channels)))
-    model.add(MaxPooling2D(pool_size=(4, 4)))
-    model.add(Conv2D(16, kernel_size=(5, 5),
-                 activation='relu',input_shape=(64,64,4)))
-    model.add(MaxPooling2D(pool_size=(4, 4)))
-    model.add(Flatten())
-    model.add(Dense(100, activation='relu',name="hidden",kernel_regularizer=regularizers.l1(0.01),))
-    model.add(Dropout(0.5))
-    model.add(Dense(units=n_cats, activation='softmax'))
-    model.compile(loss=keras.losses.categorical_crossentropy,
+#def make_exp1(n_cats,n_channels):
+#    model = Sequential()
+#    model.add(Conv2D(24, kernel_size=(5, 5),
+#                 activation='relu',
+#                 input_shape=(64,64,n_channels)))
+#    model.add(MaxPooling2D(pool_size=(4, 4)))
+#    model.add(Conv2D(16, kernel_size=(5, 5),
+#                 activation='relu',input_shape=(64,64,4)))
+#    model.add(MaxPooling2D(pool_size=(4, 4)))
+#    model.add(Flatten())
+#    model.add(Dense(100, #activation='relu',name="hidden",kernel_regularizer=regularizers.l1(0.01),))
+#    model.add(Dropout(0.5))
+#    model.add(Dense(units=n_cats, activation='softmax'))
+#    model.compile(loss=keras.losses.categorical_crossentropy,
               #optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
-              optimizer=keras.optimizers.Adadelta())
-    return model
+#              optimizer=keras.optimizers.Adadelta())
+#    return model
 
-def make_exp2(n_cats,n_channels):
-    input_layer = Input(shape=(64,64,n_channels))
-    activ='relu' #'elu'
-    
-    ker_reg=None#regularizers.l1(0.01)# if(l1) else None
-
-    conv1=Conv2D(24, kernel_size=(5,5),
-            activation=activ)(input_layer)
-    pool1=MaxPooling2D(pool_size=(4,4))(conv1)
-
-    conv2=Conv2D(16, kernel_size=(5,5),
-            activation=activ)(pool1)
-    pool2=MaxPooling2D(pool_size=(4,4))(conv1)
-
-    n_hidden=32
-    
-
-    short1 = Dense(64, activation=activ)(Flatten()(pool2))   
-    dense_layer1=Dense(64, activation=activ)(short1)
-    res_layer1=add([short1, dense_layer1])
- 
-    short2 = Dense(n_hidden, activation=activ)(res_layer1)   
-    dense_layer2=Dense(n_hidden, activation=activ)(short2)
-    res_layer2=add([short2, dense_layer2],name='hidden')
-
-    drop1=Dropout(0.5)(res_layer2)
-    output_layer = Dense(units=n_cats, activation='softmax')(drop1)
-    model=Model(inputs=input_layer, outputs=output_layer)
-    model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.Adadelta())
-    model.summary()
-    return model
+#def make_exp2(n_cats,n_channels):
+#    input_layer = Input(shape=(64,64,n_channels))
+#    activ='relu' #'elu'   
+#    ker_reg=None#regularizers.l1(0.01)# if(l1) else None
+#    conv1=Conv2D(24, kernel_size=(5,5),
+#            activation=activ)(input_layer)
+#    pool1=MaxPooling2D(pool_size=(4,4))(conv1)
+#    conv2=Conv2D(16, kernel_size=(5,5),
+#            activation=activ)(pool1)
+#    pool2=MaxPooling2D(pool_size=(4,4))(conv1)
+#    n_hidden=32
+#    short1 = Dense(64, activation=activ)(Flatten()(pool2))   
+#    dense_layer1=Dense(64, activation=activ)(short1)
+#    res_layer1=add([short1, dense_layer1])
+#    short2 = Dense(n_hidden, activation=activ)(res_layer1)   
+#    dense_layer2=Dense(n_hidden, activation=activ)(short2)
+#    res_layer2=add([short2, dense_layer2],name='hidden')
+#    drop1=Dropout(0.5)(res_layer2)
+#    output_layer = Dense(units=n_cats, activation='softmax')(drop1)
+#    model=Model(inputs=input_layer, outputs=output_layer)
+#    model.compile(loss=keras.losses.categorical_crossentropy,
+#              optimizer=keras.optimizers.Adadelta())
+#    model.summary()
+#    return model

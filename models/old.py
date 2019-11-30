@@ -23,5 +23,28 @@ def make_conv(n_cats,n_channels,params=None):
     model.add(Dense(units=n_cats, activation='softmax'))
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
-#              optimizer=keras.optimizers.Adadelta())
+    return model
+
+
+def make_pyramid(n_cats,n_channels,params=None):
+    model = Sequential()
+    model.add(Conv2D(64, kernel_size=(5, 5),
+                 activation='relu',
+                 input_shape=(64,64,n_channels)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(32, kernel_size=(5, 5),
+                 activation='relu',input_shape=(64,64,4)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(16, kernel_size=(5, 5),
+                 activation='relu',input_shape=(64,64,4)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Flatten())
+    model.add(Dense(80, activation='relu',name="hidden",kernel_regularizer=regularizers.l1(0.01),))
+    if(params and ('batch' in params)):
+        model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+    model.add(Dense(units=n_cats, activation='softmax'))
+    model.compile(loss=keras.losses.categorical_crossentropy,
+              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
     return model
