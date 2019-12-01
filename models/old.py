@@ -5,8 +5,10 @@ from keras.layers import Conv2D, MaxPooling2D,ZeroPadding2D, Activation
 from keras import regularizers
     
 def make_conv(n_cats,n_channels,params=None):
-    n_hidden=params['hidden'] if(params and ('hidden' in params)) else 100
-    n_kerns1=params['n_kerns1'] if(params and ('n_kerns1' in params)) else 16
+    if(not params):
+        params={}
+    n_hidden=params['hidden'] if('hidden' in params) else 100
+    n_kerns1=params['n_kerns1'] if('n_kerns1' in params) else 16
     model = Sequential()
     model.add(Conv2D(n_kerns1, kernel_size=(5, 5),
                  activation='relu',
