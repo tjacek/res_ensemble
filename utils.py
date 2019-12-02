@@ -38,7 +38,7 @@ def ts_features(seq_path,n_epochs=1000):
     resnet.train_model(seq_path,model_path,n_epochs)
     resnet.extract_feats(seq_path,model_path,feat_path)
 
-def extract(frame_path,nn_path,seq_path,k=15):
+def ens_extract(frame_path,nn_path,seq_path,k=15):
     nn_paths=files.top_files(nn_path)[k:]
     print(nn_paths)
     ens.binary_extract(frame_path,nn_paths,seq_path)
