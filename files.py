@@ -24,3 +24,7 @@ def atoi(text):
 def make_dir(path):
     if(not os.path.isdir(path)):
         os.mkdir(path)
+
+def clean_str(name_i):
+    digits=[ str(int(digit_i)) for digit_i in re.findall(r'\d+',name_i)]
+    return "_".join(digits)

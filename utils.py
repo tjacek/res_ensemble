@@ -1,5 +1,5 @@
 import os.path, numpy as np
-import basic,extract,feats,ens,files,imgs,persons,resnet
+import basic,extract,feats,ens,files,imgs,persons,resnet,data
 import preproc.agum,preproc.rescale,preproc.box
 
 def make_frames(in_path):
@@ -85,3 +85,10 @@ def extract_ensemble(seq_path):
     for i,model_i in enumerate(files.top_files(model_path)):
         feat_i=feat_path+'/nn'+str(i)
         resnet.extract_feats(seq_path,model_i,feat_i)
+
+def unify_datasets(in_path,agum_path,out_path):#for data agumentation
+    data1,data2=imgs.read_seqs(in_path),imgs.read_seqs(agum_path)    
+    train,test=data.split(data2.keys())
+    new_data={ name_i+"_1":data2[name_i] for name_i in train}
+    unified = {**data1, **new_data}
+    imgs.save_seqs(unified,out_path)
