@@ -7,7 +7,7 @@ from keras import backend as K
 from keras.models import load_model
 import data,imgs
 
-def train(in_path,out_path=None,n_epochs=20,recon=True):
+def train(in_path,out_path=None,n_epochs=50,recon=True):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X=data.format_frames(X_train,n_channels)
@@ -62,27 +62,22 @@ def make_autoencoder(n_channels):
 
 def make_basic(n_channels):
     input_img = Input(shape=(64, 64, n_channels))
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
+    x=input_img
+    kern_size,pool_size=(3,3),(2,2)
+    filters=[32,16,16,16]
+    for filtr_i in filters:
+        x = Conv2D(filtr_i, kern_size, activation='relu', padding='same')(x)
+        x = MaxPooling2D(pool_size, padding='same')(x)
+
     shape = K.int_shape(x)
     x=Flatten()(x)
     encoded=Dense(100)(x) 
     x = Dense(shape[1]*shape[2]*shape[3])(encoded)
     x = Reshape((shape[1], shape[2], shape[3]))(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2DTranspose(16, (3, 3), activation='relu',padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2DTranspose(16, (3, 3), activation='relu',padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2DTranspose(16, (3, 3), activation='relu',padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2DTranspose(32, (3, 3), activation='relu',padding='same')(x)
+    filters.reverse()
+    for filtr_i in filters:
+    	x = UpSampling2D(pool_size)(x)
+    	x = Conv2DTranspose(filtr_i, kern_size, activation='relu',padding='same')(x)
     x=Conv2DTranspose(filters=2,kernel_size=64,padding='same')(x)
     model = Model(input_img, x)
     model.compile(optimizer='adam',
@@ -90,4 +85,4 @@ def make_basic(n_channels):
     return model,None
 
 #train('../time/data' )
-reconstruct("../time/data","../time/ae")
+reconstruct("../time/data","../time/ae",diff=True)
