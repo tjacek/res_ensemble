@@ -27,7 +27,6 @@ def make_conv(n_cats,n_channels,params=None):
               optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
     return model
 
-
 def make_pyramid(n_cats,n_channels,params=None):
     model = Sequential()
     model.add(Conv2D(64, kernel_size=(5, 5),
@@ -50,3 +49,19 @@ def make_pyramid(n_cats,n_channels,params=None):
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
     return model
+
+def make_five(n_cats,n_channels,params=None):
+    input_img = Input(shape=(64, 64, n_channels))
+    x=input_img
+    kern_size,pool_size,filters=(3,3),(2,2),[32,16,16,16]
+    for filtr_i in filters:
+        x = Conv2D(filtr_i, kern_size, activation='relu', padding='same')(x)
+        x = MaxPooling2D(pool_size, padding='same')(x)
+    x=Flatten()(x)
+    x=Dense(100, activation='relu',name="hidden",kernel_regularizer=regularizers.l1(0.01),)(x)
+    x=Dropout(0.5)(x)
+    x=Dense(units=n_cats,activation='softmax')(x)
+    model = Model(input_img, x)
+    model.compile(loss=keras.losses.categorical_crossentropy,
+              optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
+    return model 
