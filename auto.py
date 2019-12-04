@@ -1,10 +1,11 @@
-import os
-import keras
+import numpy as np
+import os,keras
 from keras.layers import Input, Dense,Conv2D,Reshape,Conv2DTranspose
 from keras.layers import Flatten,MaxPooling2D,UpSampling2D
 from keras.models import Model
 from keras import backend as K
-import data
+from keras.models import load_model
+import data,imgs
 
 def train(in_path,out_path=None,n_epochs=5,recon=True):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
@@ -20,6 +21,19 @@ def train(in_path,out_path=None,n_epochs=5,recon=True):
         out_path=dest_dir+'/ae'
     print(out_path)
     model.save(out_path)
+
+def reconstruct(in_path,model_path,out_path=None):
+    model=load_model(model_path)
+    if(not out_path):
+        out_path=os.path.split(in_path)[0]+'/rec'	
+    def rec_helper(X):
+        X=np.array(X)
+        old_dim=X.shape
+        X=data.format_frames(X)
+        pred= model.predict(X)
+        pred=  [np.vstack(frame_i.T) for frame_i in X]#np.reshape(pred,old_dim)
+        return pred   
+    imgs.transform(in_path,out_path,rec_helper,False)
 
 def make_autoencoder(n_channels):
     input_img = Input(shape=(64, 64, n_channels))
@@ -62,4 +76,5 @@ def make_basic(n_channels):
     	                loss='binary_crossentropy')#'mean_squared_error')
     return autoencoder,recon
 
-train('../time/data' )
+#train('../time/data' )
+reconstruct("../time/data","../time/ae")
