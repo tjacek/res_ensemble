@@ -5,23 +5,23 @@ from keras.layers import Flatten,MaxPooling2D,UpSampling2D
 from keras.models import Model
 from keras import backend as K
 from keras.models import load_model
-import data,imgs
+import data,imgs,extract
 
-def train(in_path,out_path=None,n_epochs=50,recon=True):
+def train(in_path,out_path=None,n_epochs=20,recon=True):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X=data.format_frames(X_train,n_channels)
-    decode,encode=make_basic(n_channels)
-    model=decode if(recon) else decode
-    model.summary()
-    model.fit(X,X,epochs=n_epochs,batch_size=256)#,
+    model,recon=make_basic(n_channels)
+    recon.summary()
+    recon.fit(X,X,epochs=n_epochs,batch_size=256)#,
 #    	shuffle=True,validation_data=(X, X))
     if(not out_path):
         dest_dir=os.path.split(in_path)[0]
         out_path=dest_dir+'/ae'
-    print(out_path)
     model.save(out_path)
-
+    if(recon):
+        recon.save(out_path+"_recon")
+        	
 def reconstruct(in_path,model_path,out_path=None,diff=False):
     model=load_model(model_path)
     if(not out_path):
@@ -35,6 +35,14 @@ def reconstruct(in_path,model_path,out_path=None,diff=False):
         pred=  [np.vstack(frame_i.T) for frame_i in pred]
         return pred   
     imgs.transform(in_path,out_path,rec_helper,False)
+
+def extract_feats(in_path,model_path,out_path=None):
+    if(not out_path):
+        out_path=os.path.split(in_path)[0]+'/ae_feats'
+    model=load_model(model_path)
+    seq_dict=imgs.read_seqs(in_path) 
+    feat_dict=extract.frame_features(seq_dict,model)
+    extract.save_seqs(feat_dict,out_path)
 
 def make_autoencoder(n_channels):
     input_img = Input(shape=(64, 64, n_channels))
@@ -63,12 +71,10 @@ def make_autoencoder(n_channels):
 def make_basic(n_channels):
     input_img = Input(shape=(64, 64, n_channels))
     x=input_img
-    kern_size,pool_size=(3,3),(2,2)
-    filters=[32,16,16,16]
+    kern_size,pool_size,filters=(3,3),(2,2),[32,16,16,16]
     for filtr_i in filters:
         x = Conv2D(filtr_i, kern_size, activation='relu', padding='same')(x)
         x = MaxPooling2D(pool_size, padding='same')(x)
-
     shape = K.int_shape(x)
     x=Flatten()(x)
     encoded=Dense(100)(x) 
@@ -79,10 +85,14 @@ def make_basic(n_channels):
     	x = UpSampling2D(pool_size)(x)
     	x = Conv2DTranspose(filtr_i, kern_size, activation='relu',padding='same')(x)
     x=Conv2DTranspose(filters=2,kernel_size=64,padding='same')(x)
-    model = Model(input_img, x)
-    model.compile(optimizer='adam',
+    recon = Model(input_img, x)
+    model =Model(input_img,encoded)
+    recon.compile(optimizer='adam',
     	                loss='mean_squared_error')
-    return model,None
+    return model,recon
 
 #train('../time/data' )
-reconstruct("../time/data","../time/ae",diff=True)
+#reconstruct("../time/data","../time/ae_recon",diff=True)
+#extract_feats("../time/data","../time/ae")
+import feats
+feats.compute_feats("../time/ae_feats","../time/feats.txt")
