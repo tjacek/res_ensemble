@@ -3,7 +3,8 @@ from keras.models import Model,Sequential
 from keras.layers import Input,Add,Dense, Dropout, Flatten,BatchNormalization
 from keras.layers import Conv2D, MaxPooling2D,ZeroPadding2D, Activation
 from keras import regularizers
-    
+from keras.models import load_model
+
 def make_conv(n_cats,n_channels,params=None):
     if(not params):
         params={}
@@ -51,6 +52,8 @@ def make_pyramid(n_cats,n_channels,params=None):
     return model
 
 def make_five(n_cats,n_channels,params=None):
+    if(not params):
+        params={}
     input_img = Input(shape=(64, 64, n_channels))
     x=input_img
     kern_size,pool_size,filters=(3,3),(2,2),[32,16,16,16]
@@ -64,4 +67,13 @@ def make_five(n_cats,n_channels,params=None):
     model = Model(input_img, x)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
+    if(params['pretrain']):
+        pretrain_model(model,params['pretrain'])
     return model 
+
+def pretrain_model(model,auto_path):
+    ae=load_model(auto_path)
+    for i,layers_i in enumerate(ae.layers):
+        weights_i=layers_i.get_weights()
+        model.layers[i].set_weights(weights_i)
+    return model

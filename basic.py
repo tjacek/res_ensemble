@@ -3,7 +3,6 @@ import keras,keras.utils
 from sklearn.metrics import classification_report
 import data,models
 
-
 def simple_exp(in_path,out_path=None,n_epochs=500,model_type="old"):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
@@ -11,7 +10,8 @@ def simple_exp(in_path,out_path=None,n_epochs=500,model_type="old"):
     X_test,y_test=prepare_data(X_test,y_test,n_channels) 
 
     model_factory,params=models.get_model_factory(model_type)
-    model=model_factory(n_cats,n_channels)
+    model=model_factory(n_cats,n_channels,params)
+    model.summary()
     model.fit(X_train,y_train,epochs=n_epochs,batch_size=256)
     test_model(X_test,y_test,model)
     if(out_path):
