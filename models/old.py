@@ -67,13 +67,14 @@ def make_five(n_cats,n_channels,params=None):
     model = Model(input_img, x)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True))
-    if(params['pretrain']):
+    if( 'pretrain' in params):
         pretrain_model(model,params['pretrain'])
     return model 
 
 def pretrain_model(model,auto_path):
     ae=load_model(auto_path)
     for i,layers_i in enumerate(ae.layers):
+        print(type(layers_i))
         weights_i=layers_i.get_weights()
         model.layers[i].set_weights(weights_i)
     return model

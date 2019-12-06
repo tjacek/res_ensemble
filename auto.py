@@ -6,13 +6,15 @@ from keras.models import Model
 from keras import backend as K
 from keras.models import load_model
 import data,imgs,extract
+import gc
 
-def train(in_path,out_path=None,n_epochs=20,recon=True):
+def train(in_path,out_path=None,n_epochs=1000,recon=True):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X=data.format_frames(X_train,n_channels)
     model,recon=make_basic(n_channels)
     recon.summary()
+    gc.collect()
     recon.fit(X,X,epochs=n_epochs,batch_size=256)#,
 #    	shuffle=True,validation_data=(X, X))
     if(not out_path):
@@ -40,6 +42,7 @@ def extract_feats(in_path,model_path,out_path=None):
     if(not out_path):
         out_path=os.path.split(in_path)[0]+'/ae_feats'
     model=load_model(model_path)
+    raise Exception( dir(model.layers[1]))
     seq_dict=imgs.read_seqs(in_path) 
     feat_dict=extract.frame_features(seq_dict,model)
     extract.save_seqs(feat_dict,out_path)
@@ -91,8 +94,6 @@ def make_basic(n_channels):
     	                loss='mean_squared_error')
     return model,recon
 
-#train('../time/data' )
+train('../smooth_time/data' )
 #reconstruct("../time/data","../time/ae_recon",diff=True)
 #extract_feats("../time/data","../time/ae")
-import feats
-feats.compute_feats("../time/ae_feats","../time/feats.txt")
