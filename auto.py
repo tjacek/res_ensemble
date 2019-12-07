@@ -42,7 +42,6 @@ def extract_feats(in_path,model_path,out_path=None):
     if(not out_path):
         out_path=os.path.split(in_path)[0]+'/ae_feats'
     model=load_model(model_path)
-    raise Exception( dir(model.layers[1]))
     seq_dict=imgs.read_seqs(in_path) 
     feat_dict=extract.frame_features(seq_dict,model)
     extract.save_seqs(feat_dict,out_path)
@@ -94,6 +93,6 @@ def make_basic(n_channels):
     	                loss='mean_squared_error')
     return model,recon
 
-train('../smooth_time/data' )
-#reconstruct("../time/data","../time/ae_recon",diff=True)
-#extract_feats("../time/data","../time/ae")
+#train('../smooth_time/data' )
+#reconstruct("../smooth_time/data","../smooth_time/ae_recon",diff=True)
+extract_feats("../smooth_time/data","../smooth_time/ae")
