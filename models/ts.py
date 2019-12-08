@@ -42,16 +42,17 @@ def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
     return pool1#BatchNormalization()(pool1)
 
 def siamese_model(params):
+#    raise Exception(params)
     input_shape=(params['ts_len'], params['n_feats'],1)
     left_input = Input(input_shape)
     right_input = Input(input_shape)
 
     model = Sequential()
     activ='relu'
-    model.add(Conv2D(16, kernel_size=(8,1),activation=activ,name='conv1'))
-    model.add(MaxPooling2D(pool_size=(4,1),name='pool1'))
-    model.add(Conv2D(16, kernel_size=(8,1),activation=activ,name='conv2'))
-    model.add(MaxPooling2D(pool_size=(4,1),name='pool2'))
+    model.add(Conv2D(16, kernel_size=(4,1),activation=activ,name='conv1'))
+    model.add(MaxPooling2D(pool_size=(2,1),name='pool1'))
+    model.add(Conv2D(16, kernel_size=(4,1),activation=activ,name='conv2'))
+    model.add(MaxPooling2D(pool_size=(2,1),name='pool2'))
     model.add(Flatten())
     model.add(Dense(100, activation=activ,name='hidden'))
 

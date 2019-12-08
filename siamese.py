@@ -16,7 +16,8 @@ def extract(frame_path,model_path,out_path=None):
 
 def make_model(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
-    X,y=random_data(X_train,y_train)
+#    raise Exception(X_train.shape)
+    X,y=full_data(X_train,y_train)
     make_models=models.ts.get_model_factory("sim")
     sim_metric,model=make_models(params)
     sim_metric.fit(X,y,epochs=n_epochs,batch_size=100)
@@ -42,7 +43,7 @@ def full_data(X_old,y_old):
     X,y=[],[]
     for i in range(n_samples):
         x_i,y_i=X_old[i],y_old[i]
-        for j in range(n_samples):
+        for j in range(i,n_samples):
             x_j,y_j=X_old[j],y_old[j]
             X.append([x_i,x_j])
             y.append(np.dot(y_i,y_j))
@@ -65,6 +66,6 @@ def random_data(X_old,y_old,size=100):
     X=[X[:,0],X[:,1]]
     return X,y
 
-in_path="../MHAD/agum"
-#make_model(in_path,"../full_agum/nn",n_epochs=50)
-extract(in_path,"../full_agum/nn","../full_agum/feats.txt")
+in_path="../img/imgset"
+#make_model(in_path,"sim_nn",n_epochs=50)
+extract(in_path,"../img/sim_nn","../img/feats.txt")
