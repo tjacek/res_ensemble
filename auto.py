@@ -1,7 +1,5 @@
 import numpy as np
 import os,keras
-from keras.layers import Input, Dense,Conv2D,Reshape,Conv2DTranspose
-from keras.layers import Flatten,MaxPooling2D,UpSampling2D
 from keras.models import Model
 from keras import backend as K
 from keras.models import load_model
@@ -45,30 +43,6 @@ def extract_feats(in_path,model_path,out_path=None):
     seq_dict=imgs.read_seqs(in_path) 
     feat_dict=extract.frame_features(seq_dict,model)
     extract.save_seqs(feat_dict,out_path)
-
-def make_autoencoder(n_channels):
-    input_img = Input(shape=(64, 64, n_channels))
-    n_kerns=32
-    x = Conv2D(n_kerns, (5, 5), activation='relu',padding='same')(input_img)
-    x = MaxPooling2D((2, 2))(x)
-    x = Conv2D(16, (5, 5), activation='relu',padding='same')(x)
-    x = MaxPooling2D((2, 2))(x)
-    shape = K.int_shape(x)
-    x=Flatten()(x)
-    encoded=Dense(100)(x)    
-    x = Dense(shape[1]*shape[2]*shape[3])(encoded)
-    x = Reshape((shape[1], shape[2], shape[3]))(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2DTranspose(16, (5, 5), activation='relu',padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2DTranspose(n_kerns, (5, 5), activation='relu',padding='same')(x)
-    
-    x=Conv2DTranspose(filters=2,kernel_size=n_kerns,padding='same')(x)
-    recon=Model(input_img,encoded)
-    autoencoder = Model(input_img, x) 
-    autoencoder.compile(optimizer='adam',#keras.optimizers.SGD(lr=0.0001,  momentum=0.9, nesterov=True), 
-    	                loss='mean_squared_error')
-    return autoencoder,recon
 
 
 #train('../smooth_time/data' )
