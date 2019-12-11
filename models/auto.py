@@ -1,6 +1,11 @@
 from keras.layers import Input, Dense,Conv2D,Reshape,Conv2DTranspose
 from keras.layers import Flatten,MaxPooling2D,UpSampling2D
 
+def get_model_factory(model_type):
+    if(model_type=='basic'):
+        return make_basic
+    return make_autoencoder
+
 def make_basic(n_channels):
     input_img = Input(shape=(64, 64, n_channels))
     x=input_img
