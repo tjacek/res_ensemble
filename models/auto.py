@@ -3,19 +3,24 @@ from keras.layers import Flatten,MaxPooling2D,UpSampling2D
 
 def get_model_factory(model_type):
     if(model_type=='basic'):
-        return make_basic
-    return make_autoencoder
+        return make_basic,{}
+     if(model_type=='pyr'):
+        params={'n_hidden':64,'filters':[32,32,16,16]}
+        return make_basic,{}
+    return make_autoencoder,{}
 
-def make_basic(n_channels):
+def make_basic(n_channels,params):
     input_img = Input(shape=(64, 64, n_channels))
     x=input_img
-    kern_size,pool_size,filters=(3,3),(2,2),[32,16,16,16]
+    kern_size,pool_size=(3,3),(2,2)
+    n_hidden= params['n_hidden'] if( 'n_hidden' in params) else 100
+    filters= params['filters'] if('filters' in params) else [32,16,16,16]
     for filtr_i in filters:
         x = Conv2D(filtr_i, kern_size, activation='relu', padding='same')(x)
         x = MaxPooling2D(pool_size, padding='same')(x)
     shape = K.int_shape(x)
     x=Flatten()(x)
-    encoded=Dense(100)(x) 
+    encoded=Dense(n_hidden)(x) 
     x = Dense(shape[1]*shape[2]*shape[3])(encoded)
     x = Reshape((shape[1], shape[2], shape[3]))(x)
     filters.reverse()
@@ -29,7 +34,7 @@ def make_basic(n_channels):
                       loss='mean_squared_error')
     return model,recon
 
-def make_autoencoder(n_channels):
+def make_autoencoder(n_channels,params):
     input_img = Input(shape=(64, 64, n_channels))
     n_kerns=32
     x = Conv2D(n_kerns, (5, 5), activation='relu',padding='same')(input_img)

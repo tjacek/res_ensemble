@@ -10,8 +10,8 @@ def train(in_path,out_path=None,n_epochs=1000,recon=True):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X=data.format_frames(X_train,n_channels)
-    make_model= models.auto.get_model_factory("basic")
-    model,recon=make_model(n_channels)
+    make_model,params= models.auto.get_model_factory("basic")
+    model,recon=make_model(n_channels,params)
     recon.summary()
     gc.collect()
     recon.fit(X,X,epochs=n_epochs,batch_size=256)#,
