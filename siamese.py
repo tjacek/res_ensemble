@@ -2,21 +2,17 @@ import keras
 import numpy as np
 import resnet,models.ts
 import random
-import gc
 from keras.models import load_model
 from keras.models import Model
 
 def extract(frame_path,model_path,out_path=None):
     extractor=load_model(model_path)
-#    feat_layer=model.get_layer('sequential_1').get_output_at(-1)
-#    extractor = Model(input=model.input,output=feat_layer)
     (X,y),names=resnet.load_data(frame_path,split=False)
-    X_feats=extractor.predict(X)#[X,X])
+    X_feats=extractor.predict(X)
     resnet.get_feat_dict(X_feats,names,out_path)
 
 def make_model(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
-#    raise Exception(X_train.shape)
     X,y=full_data(X_train,y_train)
     make_models=models.ts.get_model_factory("sim")
     sim_metric,model=make_models(params)
