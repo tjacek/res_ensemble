@@ -4,7 +4,7 @@ import random
 from keras.models import load_model
 from keras.models import Model
 import resnet,models.ts
-import ens,local
+import ens,local,files
 from extract import save_seqs
 
 def extract(frame_path,model_path,out_path=None):
@@ -72,7 +72,16 @@ def preproc_data(in_path,out_path,new_size=36):
         save_seqs(seqs_i,out_i)
     ens.template(in_path,out_path,helper)
 
+def make_ensemble(in_path,model_path,out_path,n_epochs=10):
+    files.make_dir(out_path)
+    def helper(in_i,out_i):
+        make_model(in_i,out_i,n_epochs)
+        feat_i=out_path+"/"+out_i.split("/")[-1]
+        extract(in_i,out_i,feat_i)
+    ens.template(in_path,model_path,helper)
 in_path="../ens/binary_seq"
-preproc_data(in_path,"../sim/imgs")
+#preproc_data(in_path,"../sim/imgs")
+make_ensemble("../sim/imgs","../sim/models","../sim/feats")
+
 #make_model(in_path,"sim_nn",n_epochs=50)
 #extract(in_path,"../img/sim_nn","../img/feats.txt")
