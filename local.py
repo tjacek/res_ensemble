@@ -51,8 +51,8 @@ def corl(points):
     x,y,z=points[0],points[1],points[2]
     return [pearsonr(x,y)[0],pearsonr(z,y)[0],pearsonr(x,z)[0]]
 
-def upsampling(seq_j):
-    feats=[spline(feat_i) for feat_i in np.array(seq_j).T]
+def upsampling(seq_j,new_size=128):
+    feats=[spline(feat_i,new_size) for feat_i in np.array(seq_j).T]
     return np.array(feats).T
 
 def spline(feat_i,new_size=128):

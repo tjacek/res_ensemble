@@ -1,16 +1,16 @@
 import keras
 import numpy as np
 import random
-import gc
 from keras.models import load_model
 from keras.models import Model
 import resnet,models.ts
 import ens,local
+from extract import save_seqs
 
 def extract(frame_path,model_path,out_path=None):
     extractor=load_model(model_path)
     (X,y),names=resnet.load_data(frame_path,split=False)
-    X_feats=extractor.predict(X)#[X,X])
+    X_feats=extractor.predict(X)
     resnet.get_feat_dict(X_feats,names,out_path)
 
 def make_model(in_path,out_path=None,n_epochs=50):
@@ -64,11 +64,12 @@ def random_data(X_old,y_old,size=100):
     X=[X[:,0],X[:,1]]
     return X,y
 
-def preproc_data(in_path,out_path):
+def preproc_data(in_path,out_path,new_size=36):
     def helper(in_i,out_i):
-        seq_i=resnet.read_local_feats(in_i)
-        print(len(seq_i))
-        print(out_i)
+        seqs_i=resnet.read_local_feats(in_i)
+        seqs_i={name_j:local.upsampling(seq_ij,new_size) 
+                 for name_j,seq_ij in seqs_i.items()}
+        save_seqs(seqs_i,out_i)
     ens.template(in_path,out_path,helper)
 
 in_path="../ens/binary_seq"
