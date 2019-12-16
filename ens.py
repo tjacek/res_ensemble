@@ -44,3 +44,9 @@ def binarize(train_y,cat_i):
             new_sample_j[1]=1
         binary_y.append(new_sample_j)
     return np.array(binary_y)
+
+def template(in_path,out_path,fun):
+    files.make_dir(out_path)
+    for in_i in files.top_files(in_path):
+        out_i= out_path+'/'+in_i.split('/')[-1]
+        fun(in_i,out_i)
