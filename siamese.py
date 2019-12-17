@@ -64,13 +64,16 @@ def random_data(X_old,y_old,size=100):
     X=[X[:,0],X[:,1]]
     return X,y
 
-def preproc_data(in_path,out_path,new_size=36):
+def preproc_data(in_path,out_path,new_size=36,single=False):
     def helper(in_i,out_i):
         seqs_i=resnet.read_local_feats(in_i)
         seqs_i={name_j:local.upsampling(seq_ij,new_size) 
                  for name_j,seq_ij in seqs_i.items()}
         save_seqs(seqs_i,out_i)
-    ens.template(in_path,out_path,helper)
+    if(single):
+        helper(in_path,out_path)
+    else:
+        ens.template(in_path,out_path,helper)
 
 def make_ensemble(in_path,model_path,out_path,n_epochs=10):
     files.make_dir(out_path)
@@ -79,9 +82,9 @@ def make_ensemble(in_path,model_path,out_path,n_epochs=10):
         feat_i=out_path+"/"+out_i.split("/")[-1]
         extract(in_i,out_i,feat_i)
     ens.template(in_path,model_path,helper)
-in_path="../ens/binary_seq"
-#preproc_data(in_path,"../sim/imgs")
-make_ensemble("../sim/imgs","../sim/models","../sim/feats")
+in_path="../time/sim/ae_feats"
+preproc_data(in_path,"../time/imgs",128,single=True)
+#make_ensemble("../sim/imgs","../sim/models","../sim/feats")
 
-#make_model(in_path,"sim_nn",n_epochs=50)
-#extract(in_path,"../img/sim_nn","../img/feats.txt")
+#make_model(in_path,"../time/sim_nn",n_epochs=10)
+#extract(in_path,"../time/sim/sim_nn","../time/sim/feats.txt")
