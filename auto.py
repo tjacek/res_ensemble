@@ -1,7 +1,6 @@
 import numpy as np
 import os,keras
 from keras.models import Model
-from keras import backend as K
 from keras.models import load_model
 import data,imgs,extract,models.auto
 import gc
@@ -10,11 +9,12 @@ def train(in_path,out_path=None,n_epochs=1000,recon=True):
     (X_train,y_train),(X_test,y_test)=data.make_dataset(in_path)
     n_cats,n_channels=data.get_params(X_train,y_train)
     X=data.format_frames(X_train,n_channels)
+    noise_X=add_noise(X)
     make_model,params= models.auto.get_model_factory("basic")
     model,recon=make_model(n_channels,params)
     recon.summary()
     gc.collect()
-    recon.fit(X,X,epochs=n_epochs,batch_size=256)#,
+    recon.fit(noise_X,X,epochs=n_epochs,batch_size=256)#,
 #    	shuffle=True,validation_data=(X, X))
     if(not out_path):
         dest_dir=os.path.split(in_path)[0]
@@ -45,9 +45,13 @@ def extract_feats(in_path,model_path,out_path=None):
     feat_dict=extract.frame_features(seq_dict,model)
     extract.save_seqs(feat_dict,out_path)
 
+def add_noise(X):
+    std=0.25*np.mean(X)
+    noise = np.random.normal(loc=0.0, scale=std, size=X.shape)
+    return X+noise
 
-#train('../smooth_time/data' )
+#train('../time/data',n_epochs=1000)
 #reconstruct("../smooth_time/data","../smooth_time/ae_recon",diff=True)
-#extract_feats("../smooth_time/data","../smooth_time/ae")
+#extract_feats("../time/data","../time/ae")
 #import feats
-#feats.compute_feats("../smooth_time/ae_feats","../smooth_time/feats.txt")
+#feats.compute_feats("../time/ae_feats","../time/feats.txt")
