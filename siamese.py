@@ -16,8 +16,10 @@ def extract(frame_path,model_path,out_path=None):
 def make_model(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
     X,y=full_data(X_train,y_train)
-    make_models=models.ts.get_model_factory("sim")
+    make_models=models.ts.get_model_factory("sim_exp")
     sim_metric,model=make_models(params)
+#    raise Exception(y[:,0].shape)
+#    y=[:,0]
     sim_metric.fit(X,y,epochs=n_epochs,batch_size=100)
     if(out_path):
         model.save(out_path)
@@ -82,9 +84,10 @@ def make_ensemble(in_path,model_path,out_path,n_epochs=10):
         feat_i=out_path+"/"+out_i.split("/")[-1]
         extract(in_i,out_i,feat_i)
     ens.template(in_path,model_path,helper)
-in_path="../time/sim/ae_feats"
-preproc_data(in_path,"../time/imgs",128,single=True)
+
+in_path="../time/sim2/seq"
+#preproc_data(in_path,"../time/imgs",128,single=True)
 #make_ensemble("../sim/imgs","../sim/models","../sim/feats")
 
-#make_model(in_path,"../time/sim_nn",n_epochs=10)
-#extract(in_path,"../time/sim/sim_nn","../time/sim/feats.txt")
+#make_model(in_path,"../time/sim2/sim_nn",n_epochs=50)
+extract(in_path,"../time/sim2/sim_nn","../time/sim2/feat")

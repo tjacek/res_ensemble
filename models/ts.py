@@ -8,10 +8,13 @@ from keras import regularizers
 from keras.layers.normalization import BatchNormalization
 from keras.layers.merge import add
 from keras.models import load_model
+from keras.optimizers import RMSprop
 
 def get_model_factory(model_type):
     if(model_type=='sim'):
         return siamese_model
+    if(model_type=='sim_exp'):
+        return siamese_exp
     if(model_type=='basic_reg'):
         return make_reg_conv
     if(model_type=='basic_large'):
@@ -62,20 +65,19 @@ def make_reg_conv(params):
     model.summary()
     return model
 
-
 def make_large(params):
     input_layer = Input(shape=(params['ts_len'], params['n_feats'],1))
     activ='relu' #'elu'
-    filters=[64,32,16]
-    layer_i=input_layer
-    for i,filtr_i in enumerate(filters):
-        layer_i=add_conv_layer(layer_i,i,activ=activ,
-                        n_kerns=filtr_i,pool_size=(2,1),kern_size=(12,1))
-        layer_i=BatchNormalization()(layer_i)
-#        layer_i=Dropout(0.5)(layer_i)
+    
+    pool1=add_conv_layer(input_layer,0,activ=activ,n_kerns=32)
+    
+    pool2=add_conv_layer(pool1,1,activ=activ,kern_size=(16,1),pool_size=(4,1))
+#    pool2=Conv2D(32, kernel_size=(1,100),
+#            activation=activ,name='select')(pool2)
+
     kernel_regularizer=regularizers.l1(0.001)
-    hidden_layer = Dense(64,name='hidden', activation=activ,
-                         kernel_regularizer=kernel_regularizer)(Flatten()(layer_i))
+    hidden_layer = Dense(100,name='hidden', activation=activ,
+                         kernel_regularizer=kernel_regularizer)(Flatten()(pool2))
    
     hidden_layer=BatchNormalization()(hidden_layer)
     drop1=Dropout(0.5)(hidden_layer)
@@ -83,7 +85,7 @@ def make_large(params):
     model=Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True),
-             metrics=['accuracy'])    
+             metrics=['accuracy'])
     model.summary()
     return model
 
@@ -96,7 +98,6 @@ def add_conv_layer(input_layer,i=0,n_kerns=16,activ='relu',
     return pool1#BatchNormalization()(pool1)
 
 def siamese_model(params):
-#    raise Exception(params)
     input_shape=(params['ts_len'], params['n_feats'],1)
     left_input = Input(input_shape)
     right_input = Input(input_shape)
@@ -122,4 +123,53 @@ def siamese_model(params):
     optimizer = keras.optimizers.Adam(lr = 0.00006)
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer)
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
+    extractor.summary()
     return siamese_net,extractor
+
+def siamese_exp(params):
+    input_shape=(params['ts_len'], params['n_feats'],1)
+    left_input = Input(input_shape)
+    right_input = Input(input_shape)
+
+    model = Sequential()
+    activ='relu'
+    model.add(Conv2D(16, kernel_size=(4,1),activation=activ,name='conv1'))
+    model.add(MaxPooling2D(pool_size=(2,1),name='pool1'))
+    model.add(Conv2D(16, kernel_size=(4,1),activation=activ,name='conv2'))
+    model.add(MaxPooling2D(pool_size=(4,1),name='pool2'))
+    model.add(Flatten())
+    model.add(Dense(64, activation=activ,name='hidden'))
+
+    encoded_l = model(left_input)
+    encoded_r = model(right_input)
+
+    L1_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
+    L1_distance = L1_layer([encoded_l, encoded_r])
+
+    prediction = Dense(2,activation='sigmoid')(L1_distance)
+    siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
+    
+    optimizer = keras.optimizers.Adam(lr = 0.00006)
+    siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer)
+    extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
+    extractor.summary()
+    return siamese_net,extractor
+
+def contrastive_loss(y_true, y_pred):
+    margin = 1
+    return K.mean(y_true * K.square(y_pred) +
+                  (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
+
+def euclidean_distance(vects):
+    x, y = vects
+    sum_square = K.sum(K.square(x - y), axis=1, keepdims=True)
+    return K.sqrt(K.maximum(sum_square, K.epsilon()))
+
+def eucl_dist_output_shape(shapes):
+    shape1, shape2 = shapes
+    return (shape1[0], 1)
+
+def acc(y_true, y_pred):
+    '''Compute classification accuracy with a fixed threshold on distances.
+    '''
+    return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
