@@ -42,3 +42,7 @@ def random_data(X_old,y_old,size=100):
     X,y=np.array(X),keras.utils.to_categorical(y)
     X=[X[:,0],X[:,1]]
     return X,y
+
+def get_dist(n):
+    inc,dec=np.arange(n),np.flip(np.arange(n))
+    return np.amin(np.array([inc,dec]),axis=0)
