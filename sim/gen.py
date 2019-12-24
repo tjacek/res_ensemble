@@ -43,6 +43,13 @@ def random_data(X_old,y_old,size=100):
     X=[X[:,0],X[:,1]]
     return X,y
 
+def sample_seq(frames):
+    n_frames=len(frames)
+    dist=get_dist(n_frames)
+    def sample(n):   
+        return np.random.choice(np.arange(n_frames),n,p=dist)
+    return sample
+
 def get_dist(n):
     inc,dec=np.arange(n),np.flip(np.arange(n))
     return np.amin(np.array([inc,dec]),axis=0)
