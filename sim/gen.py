@@ -43,6 +43,18 @@ def random_data(X_old,y_old,size=100):
     X=[X[:,0],X[:,1]]
     return X,y
 
+def template(X_old,y_old,fun):
+    n_samples=X_old.shape[0]
+    X,y=[],[]
+    for i in range(n_samples):
+        x_i,y_i=X_old[i],y_old[i]
+        X_new,y_new=fun(i,x_i,y_i)
+        X+=X_new
+        y+=y_new
+    X,y=np.array(X),keras.utils.to_categorical(y)
+    X=[X[:,0],X[:,1]]
+    return X,y    
+
 def sample_seq(frames):
     n_frames=len(frames)
     dist=get_dist(n_frames)
