@@ -30,23 +30,19 @@ def full_data(X_old,y_old):
 
 def random_data(X_old,y_old,size=100):
     n_samples=X_old.shape[0]
-    X,y=[],[]
-    for i in range(n_samples):
-        x_i,y_i=X_old[i],y_old[i]
+    def rand_helper(x_i,y_i):
         indexes=[random.randint(0,n_samples-1) 
                     for j in range(size)]
+        X,y=[],[]
         for j in indexes:
             x_j,y_j=X_old[j],y_old[j]
             X.append([x_i,x_j])
             y.append(np.dot(y_i,y_j))
-    X,y=np.array(X),keras.utils.to_categorical(y)
-    X=[X[:,0],X[:,1]]
     return X,y
 
 def template(X_old,y_old,fun):
-    n_samples=X_old.shape[0]
     X,y=[],[]
-    for i in range(n_samples):
+    for i in range(X_old.shape[0]):
         x_i,y_i=X_old[i],y_old[i]
         X_new,y_new=fun(i,x_i,y_i)
         X+=X_new
