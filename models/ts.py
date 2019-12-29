@@ -8,13 +8,13 @@ from keras import regularizers
 from keras.layers.normalization import BatchNormalization
 from keras.layers.merge import add
 from keras.models import load_model
-import ts.sim
+import models.sim
 
 def get_model_factory(model_type):
     if(model_type=='sim'):
-        return ts.sim.siamese_model
+        return models.sim.siamese_model
     if(model_type=='sim_exp'):
-        return ts.sim.siamese_exp
+        return models.sim.siamese_exp
     if(model_type=='basic_reg'):
         return make_reg_conv
     if(model_type=='basic_large'):
