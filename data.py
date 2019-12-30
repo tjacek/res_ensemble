@@ -52,3 +52,13 @@ def format_frames(frames ,n_channels=None):
         n_channels=count_channels(frames)
     return np.array([np.array(np.vsplit(frame_i,n_channels)).T
                       for frame_i in frames])
+
+def seq_dataset(in_path):
+    img_seqs=imgs.read_seqs(in_path)
+    train,test=split(img_seqs.keys())
+    X,y=[],[]
+    for name_i,seq_i in img_seqs.items():
+        cat_i=parse_name(name_i)[0]-1
+        X.append(seq_i)
+        y.append(cat_i)
+    return X,y

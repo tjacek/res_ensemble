@@ -23,15 +23,17 @@ def full_data(X_old,y_old):
     return template(X_old,y_old,full_helper)
 
 def rand_data(X_old,y_old,size=10):
+#    raise Exception( type(X_old[0]))
     def rand_helper(i,x_i,y_i,n_samples):
         print(i)
         j=random.randint(0,n_samples-1) 
         x_j,y_j=X_old[j],y_old[j] 
+#        raise Exception(len(x_j))
         for k in range(size):
-            ik=random.randint(0,x_i.shape[0]-1)
-            jk=random.randint(0,x_j.shape[0]-1) 
+            ik=random.randint(0,len(x_i)-1)
+            jk=random.randint(0,len(x_j)-1) 
             yk=int(y_i==y_j)
-            yield (x_j[jk],x_j[ik]),yk
+            yield (x_j[jk],x_i[ik]),yk
     return template(X_old,y_old,rand_helper)
 
 def template(X_old,y_old,fun):
@@ -43,7 +45,7 @@ def template(X_old,y_old,fun):
             X.append(x_ij)
             y.append(y_ij)
     X,y=np.array(X),keras.utils.to_categorical(y)
-    X=[X[:,0],X[:,1]]
+#    X=[X[:,0],X[:,1]]
     return X,y    
 
 def sample_seq(frames):
