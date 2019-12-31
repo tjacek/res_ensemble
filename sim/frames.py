@@ -18,13 +18,17 @@ def show_frames(in_path,out_path):
         print(out_i)
         cv2.imwrite(out_i,img_i)
 
-def make_model(in_path):
+def make_model(in_path,out_path,n_epochs=10):
     X_train,y_train=data.seq_dataset(in_path)
     X,y=sim.gen.gen_data(X_train,y_train)
     n_cats=data.count_cats(y)
-    n_channels=int(X.shape[-2]/X.shape[-1])
+    X= [data.format_frames(x_i) for x_i in X]
+    n_channels=X[0].shape[-1]
     print(n_cats,n_channels)
-    model=make_five(n_cats,n_channels,params=None)
+    sim_metric,model=make_five(n_cats,n_channels,params=None)
+    sim_metric.fit(X,y,epochs=n_epochs,batch_size=128)
+    if(out_path):
+        model.save(out_path)
 
 def make_five(n_cats,n_channels,params=None):
     if(not params):
@@ -49,7 +53,7 @@ def make_five(n_cats,n_channels,params=None):
 
 
     L2_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
-    L2_distance = L1_layer([encoded_l, encoded_r])
+    L2_distance = L2_layer([encoded_l, encoded_r])
 
     prediction = Dense(2,activation='sigmoid')(L2_distance)
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
@@ -59,4 +63,3 @@ def make_five(n_cats,n_channels,params=None):
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
     extractor.summary()
     return siamese_net,extractor
-    return siamese_net

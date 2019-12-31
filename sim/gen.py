@@ -42,7 +42,7 @@ def template(X_old,y_old,fun):
             X.append(x_ij)
             y.append(y_ij)
     X,y=np.array(X),keras.utils.to_categorical(y)
-#    X=[X[:,0],X[:,1]]
+    X=[X[:,0],X[:,1]]
     return X,y    
 
 def sample_seq(frames,size=5):
@@ -56,5 +56,6 @@ def get_dist(n):
     inc,dec=np.arange(n),np.flip(np.arange(n))
     dist=np.amin(np.array([inc,dec]),axis=0)
     dist=dist.astype(float)
+    dist=dist**2
     dist/=np.sum(dist)
     return dist

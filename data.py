@@ -38,6 +38,7 @@ def to_dataset(names,img_seq):
     return X,y
 
 def get_params(X,y):
+    raise Exception(X.shape)
     return count_cats(y),count_channels(X) 
 
 def count_cats(y):
