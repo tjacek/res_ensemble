@@ -9,7 +9,7 @@ import data,sim.gen
 
 def show_frames(in_path,out_path):
     X_train,y_train=data.seq_dataset(in_path)
-    X,y=sim.gen.rand_data(X_train,y_train)
+    X,y=sim.gen.gen_data(X_train,y_train)
     files.make_dir(out_path)
     for i,y_i in enumerate(y):
         x0,x1=X[i]
