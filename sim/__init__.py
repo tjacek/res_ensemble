@@ -1,23 +1,10 @@
 #import keras
-import numpy as np,cv2
+import numpy as np
 #from keras.models import load_model
 #from keras.models import Model
 import resnet,models.ts
 import ens,local,files
 from extract import save_seqs
-import data,sim.gen
-
-def show_frames(in_path,out_path):
-    X_train,y_train=data.seq_dataset(in_path)
-    X,y=sim.gen.gen_data(X_train,y_train)
-    files.make_dir(out_path)
-    for i,y_i in enumerate(y):
-        x0,x1=X[i]
-        cat_i=np.argmax(y_i)
-        img_i=np.concatenate([x0,x1])
-        out_i='%s/%d_%d.png' % (out_path,i,cat_i)
-        print(out_i)
-        cv2.imwrite(out_i,img_i)
 
 def extract(frame_path,model_path,out_path=None):
     extractor=load_model(model_path)
