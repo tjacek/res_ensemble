@@ -2,10 +2,13 @@ import numpy as np
 import re
 import imgs
 
-def make_dataset(in_path):
+def make_dataset(in_path,frames=True):
     img_seqs=imgs.read_seqs(in_path)
     train,test=split(img_seqs.keys())
-    return to_dataset(train,img_seqs),to_dataset(test,img_seqs)
+    if(frames):
+        return to_dataset(train,img_seqs),to_dataset(test,img_seqs)
+    else:
+        return to_seq_dataset(train,img_seqs),to_seq_dataset(test,img_seqs)
 
 def split(names,selector=None):
     if(not selector):
@@ -46,7 +49,7 @@ def count_cats(y):
 
 def count_channels(X):
     frame_dims=X[0].shape
-    return int(frame_dims[0]/frame_dims[1])
+    return int(frame_dims[-2]/frame_dims[-1])
 
 def format_frames(frames ,n_channels=None):
     if(not n_channels):
@@ -54,12 +57,10 @@ def format_frames(frames ,n_channels=None):
     return np.array([np.array(np.vsplit(frame_i,n_channels)).T
                       for frame_i in frames])
 
-def seq_dataset(in_path):
-    img_seqs=imgs.read_seqs(in_path)
-    train,test=split(img_seqs.keys())
+def to_seq_dataset(names,img_seqs):
     X,y=[],[]
-    for name_i,seq_i in img_seqs.items():
+    for name_i in names:
         cat_i=parse_name(name_i)[0]-1
-        X.append(seq_i)
+        X.append(img_seqs[name_i])
         y.append(cat_i)
     return X,y

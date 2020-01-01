@@ -18,8 +18,16 @@ def show_frames(in_path,out_path):
         print(out_i)
         cv2.imwrite(out_i,img_i)
 
-def make_model(in_path,out_path,n_epochs=10):
-    X_train,y_train=data.seq_dataset(in_path)
+#def extract(frame_path,model_path,out_path=None):
+#    extractor=load_model(model_path)
+#    (X,y),names=resnet.load_data(frame_path,split=False)
+#    X_feats=extractor.predict(X)
+#    resnet.get_feat_dict(X_feats,names,out_path)
+
+def make_model(in_path,out_path,n_epochs=100):
+    train,test=data.make_dataset(in_path,False)
+    X_train,y_train=train
+#    raise Exception(type(X_train))
     X,y=sim.gen.gen_data(X_train,y_train)
     n_cats=data.count_cats(y)
     X= [data.format_frames(x_i) for x_i in X]
