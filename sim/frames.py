@@ -4,7 +4,8 @@ import keras.backend as K
 from keras.models import Model,Sequential
 from keras.layers import Input,Add,Dense, Dropout, Flatten,BatchNormalization
 from keras.layers import Conv2D, MaxPooling2D,ZeroPadding2D,Activation,Lambda
-import data,sim.gen,files
+from keras.models import load_model
+import data,sim.gen,files,imgs,extract
 
 def show_frames(in_path,out_path):
     X_train,y_train=data.seq_dataset(in_path)
@@ -18,25 +19,30 @@ def show_frames(in_path,out_path):
         print(out_i)
         cv2.imwrite(out_i,img_i)
 
-#def extract(frame_path,model_path,out_path=None):
-#    extractor=load_model(model_path)
-#    (X,y),names=resnet.load_data(frame_path,split=False)
-#    X_feats=extractor.predict(X)
-#    resnet.get_feat_dict(X_feats,names,out_path)
+def extract_feats(frame_path,model_path,out_path=None):
+    extractor=load_model(model_path)
+    img_seqs=imgs.read_seqs(frame_path)
+    feats_seq={name_i:data.format_frames(seq_i)  
+                for name_i,seq_i in img_seqs.items()}
+    feat_dict={name_i:extractor.predict(seq_i) 
+                for name_i,seq_i in feats_seq.items()}
+    extract.save_seqs(feat_dict,out_path)
 
 def make_model(in_path,out_path,n_epochs=100):
-    train,test=data.make_dataset(in_path,False)
-    X_train,y_train=train
-#    raise Exception(type(X_train))
+    (X_train,y_train),test=data.make_dataset(in_path,False)
     X,y=sim.gen.gen_data(X_train,y_train)
-    n_cats=data.count_cats(y)
-    X= [data.format_frames(x_i) for x_i in X]
-    n_channels=X[0].shape[-1]
-    print(n_cats,n_channels)
+    X,n_cats,n_channels=prepare_data(X,y)
     sim_metric,model=make_five(n_cats,n_channels,params=None)
     sim_metric.fit(X,y,epochs=n_epochs,batch_size=128)
     if(out_path):
         model.save(out_path)
+
+def prepare_data(X,y):
+    n_cats=data.count_cats(y)
+    X= [data.format_frames(x_i) for x_i in X]
+    n_channels=X[0].shape[-1]
+    print(n_cats,n_channels)
+    return X,n_cats,n_channels
 
 def make_five(n_cats,n_channels,params=None):
     if(not params):
