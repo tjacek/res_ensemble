@@ -46,6 +46,8 @@ def save_seqs(seq_dict,out_path):
         save_frames(seq_path_i,seq_i)
 
 def read_frames(seq_path_i):
+    if(seq_path_i.split(".")[-1]=="npy"):
+        return np.load(seq_path_i)
     return [ cv2.imread(frame_path_j, cv2.IMREAD_GRAYSCALE)
                 for frame_path_j in files.top_files(seq_path_i)]
 
