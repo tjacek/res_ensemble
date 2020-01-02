@@ -8,11 +8,11 @@ from keras.models import load_model
 import data,sim.gen,files,imgs,extract
 
 def show_frames(in_path,out_path):
-    X_train,y_train=data.seq_dataset(in_path)
-    X,y=sim.gen.gen_data(X_train,y_train)
+    (X_train,y_train),test=data.make_dataset(in_path,False)
+    X,y=sim.gen.balanced_data(X_train,y_train)
     files.make_dir(out_path)
     for i,y_i in enumerate(y):
-        x0,x1=X[i]
+        x0,x1=X[0][i],X[1][i]
         cat_i=np.argmax(y_i)
         img_i=np.concatenate([x0,x1])
         out_i='%s/%d_%d.png' % (out_path,i,cat_i)
