@@ -28,10 +28,12 @@ def extract_feats(frame_path,model_path,out_path=None):
                 for name_i,seq_i in feats_seq.items()}
     extract.save_seqs(feat_dict,out_path)
 
-def make_model(in_path,out_path,n_epochs=100):
+def make_model(in_path,out_path,n_epochs=1000,gen_type="balanced"):
     (X_train,y_train),test=data.make_dataset(in_path,False)
-    X,y=sim.gen.gen_data(X_train,y_train)
+    gen=sim.gen.get_data_generator(gen_type)
+    X,y=gen(X_train,y_train)
     X,n_cats,n_channels=prepare_data(X,y)
+#    raise Exception(n_cats)
     sim_metric,model=make_five(n_cats,n_channels,params=None)
     sim_metric.fit(X,y,epochs=n_epochs,batch_size=128)
     if(out_path):
@@ -63,7 +65,7 @@ def make_five(n_cats,n_channels,params=None):
     model.add(Dense(64, activation=activ,name='hidden'))
 
     encoded_l = model(left_input)
-    encoded_r = model(left_input)
+    encoded_r = model(right_input)
 
 
     L2_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
@@ -72,8 +74,7 @@ def make_five(n_cats,n_channels,params=None):
     prediction = Dense(2,activation='sigmoid')(L2_distance)
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
     siamese_net.summary()
-    optimizer = keras.optimizers.Adam(lr = 0.00006)
+    optimizer = keras.optimizers.Adam(lr = 0.00006)#keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True)
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer)
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
-    extractor.summary()
     return siamese_net,extractor

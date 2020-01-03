@@ -3,6 +3,11 @@ import keras
 import random
 import sim.dist
 
+def get_data_generator(gen_type):
+    if(gen_type=="balanced"):
+        return balanced_data
+    return gen_data
+
 def template(X_old,y_old,fun):
     X,y=[],[]
     n_samples=len(X_old)
@@ -25,11 +30,11 @@ def gen_data(X_old,y_old,n_seqs=3,n_frames=5):
                 yield pair_k
     return template(X_old,y_old,gen_helper)
 
-def full_data(X_old,y_old):
-    def full_helper(i,x_i,x_j,n_samples):
-        for j in range(i,n_samples):
-            yield X_old[j],y_old[j]
-    return template(X_old,y_old,full_helper)
+#def full_data(X_old,y_old):
+#    def full_helper(i,x_i,x_j,n_samples):
+#        for j in range(i,n_samples):
+#            yield X_old[j],y_old[j]
+#    return template(X_old,y_old,full_helper)
 
 def rand_data(X_old,y_old,size=10):
     def rand_helper(i,x_i,y_i,n_samples):
@@ -43,7 +48,7 @@ def rand_data(X_old,y_old,size=10):
             yield (x_j[jk],x_i[ik]),yk
     return template(X_old,y_old,rand_helper)
 
-def balanced_data(X_old,y_old,n_frames=5):
+def balanced_data(X_old,y_old,n_frames=10):
     dist=sim.dist.make_balanced(y_old)
     def helper(i,x_i,y_i,n_samples):
         in_i=dist.in_cat(y_i)
