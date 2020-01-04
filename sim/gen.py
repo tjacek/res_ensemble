@@ -48,13 +48,15 @@ def rand_data(X_old,y_old,size=10):
             yield (x_j[jk],x_i[ik]),yk
     return template(X_old,y_old,rand_helper)
 
-def balanced_data(X_old,y_old,n_seqs=10,n_frames=5):
+def balanced_data(X_old,y_old,in_seqs=5,out_seqs=10,n_frames=5):
     dist=sim.dist.make_balanced(y_old)
     def helper(i,x_i,y_i,n_samples):
-        in_i=dist.in_cat(y_i)
-        x_in,y_in=X_old[in_i],y_old[in_i] 
-        pairs=sim.dist.sample_pairs(x_i,y_i,x_in,y_in,n_frames)
-        for k in range(n_seqs):
+        pairs=[]
+        for k in range(in_seqs):
+            in_i=dist.in_cat(y_i)
+            x_in,y_in=X_old[in_i],y_old[in_i] 
+            pairs+=sim.dist.sample_pairs(x_i,y_i,x_in,y_in,n_frames)
+        for k in range(out_seqs):
             out_i=dist.out_cat(y_i)
             x_out,y_out=X_old[out_i],y_old[out_i] 
             pairs+=sim.dist.sample_pairs(x_i,y_i,x_out,y_out,n_frames)
