@@ -4,6 +4,7 @@ import keras.backend as K
 from keras.models import Model,Sequential
 from keras.layers import Input,Add,Dense, Dropout, Flatten,BatchNormalization
 from keras.layers import Conv2D, MaxPooling2D,ZeroPadding2D,Activation,Lambda
+from keras import regularizers
 from keras.models import load_model
 import data,sim.gen,files,imgs,extract
 
@@ -28,7 +29,7 @@ def extract_feats(frame_path,model_path,out_path=None):
                 for name_i,seq_i in feats_seq.items()}
     extract.save_seqs(feat_dict,out_path)
 
-def make_model(in_path,out_path,n_epochs=1000,gen_type="balanced"):
+def make_model(in_path,out_path,n_epochs=500,gen_type="balanced"):
     (X_train,y_train),test=data.make_dataset(in_path,False)
     gen=sim.gen.get_data_generator(gen_type)
     X,y=gen(X_train,y_train)
@@ -46,7 +47,7 @@ def prepare_data(X,y):
     print(n_cats,n_channels)
     return X,n_cats,n_channels
 
-def make_five(n_cats,n_channels,params=None):
+def make_five_(n_cats,n_channels,params=None):
     if(not params):
         params={}
     input_shape=(64,64,n_channels)
@@ -55,14 +56,14 @@ def make_five(n_cats,n_channels,params=None):
 
     model = Sequential()
     activ='relu'
-    model.add(Conv2D(16, kernel_size=(4,4),activation=activ,name='conv1'))
+    model.add(Conv2D(64, kernel_size=(4,4),activation=activ,name='conv1'))
     model.add(MaxPooling2D(pool_size=(2,2),name='pool1'))
-    model.add(Conv2D(16, kernel_size=(4,4),activation=activ,name='conv2'))
+    model.add(Conv2D(32, kernel_size=(4,4),activation=activ,name='conv2'))
     model.add(MaxPooling2D(pool_size=(2,2),name='pool2'))
     model.add(Conv2D(16, kernel_size=(4,4),activation=activ,name='conv3'))
     model.add(MaxPooling2D(pool_size=(2,2),name='pool3'))
     model.add(Flatten())
-    model.add(Dense(64, activation=activ,name='hidden'))
+    model.add(Dense(64, activation=activ,name='hidden',kernel_regularizer=regularizers.l1(0.01)))
 
     encoded_l = model(left_input)
     encoded_r = model(right_input)
@@ -78,3 +79,56 @@ def make_five(n_cats,n_channels,params=None):
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer)
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
     return siamese_net,extractor
+
+
+def make_five(n_cats,n_channels,params=None):
+    if(not params):
+        params={}
+    input_shape=(64,64,n_channels)
+    left_input = Input(input_shape)
+    right_input = Input(input_shape)
+
+    model = Sequential()
+    activ='relu'
+    kern_size,pool_size,filters=(3,3),(2,2),[32,16,16,16]
+    for filtr_i in filters:
+        model.add(Conv2D(filtr_i, kern_size, activation='relu', padding='same'))
+        model.add(MaxPooling2D(pool_size, padding='same'))
+    model.add(Flatten())
+    model.add(Dense(64, activation=activ,name='hidden',kernel_regularizer=regularizers.l1(0.01)))
+
+    encoded_l = model(left_input)
+    encoded_r = model(right_input)
+
+    prediction,loss=contr_loss(encoded_l,encoded_r)
+    siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
+    optimizer = keras.optimizers.Adam(lr = 0.00006)#keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True)
+    siamese_net.compile(loss=loss,#"binary_crossentropy",
+        optimizer=optimizer)
+    extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
+    extractor.summary()
+    return siamese_net,extractor
+
+def basic_loss(encoded_l,encoded_r):
+    L2_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
+    L2_distance = L2_layer([encoded_l, encoded_r])
+    return Dense(2,activation='sigmoid')(L2_distance),"binary_crossentropy"
+
+def contr_loss(encoded_l,encoded_r):
+    L2_layer = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)
+    return L2_layer([encoded_l, encoded_r]),contrastive_loss
+
+def contrastive_loss(y_true, y_pred):
+    margin = 1
+    square_pred = K.square(y_pred)
+    margin_square = K.square(K.maximum(margin - y_pred, 0))
+    return K.mean(y_true * square_pred + (1 - y_true) * margin_square)
+
+def euclidean_distance(vects):
+    x, y = vects
+    sum_square = K.sum(K.square(x - y), axis=1, keepdims=True)
+    return K.sqrt(K.maximum(sum_square, K.epsilon()))
+
+def eucl_dist_output_shape(shapes):
+    shape1, shape2 = shapes
+    return (shape1[0], 1)
