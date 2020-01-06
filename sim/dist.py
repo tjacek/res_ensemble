@@ -16,6 +16,13 @@ class BalancedDist(object):
        	    j+=1
         return self.in_cat(j)
 
+    def divide(self,i):
+        out=[]
+        for j,cat_j in enumerate(self.by_cat):
+            if(i!=cat_j):
+                out+=self.by_cat[cat_j]
+        return self.by_cat[i],out	        
+
 def make_balanced(y):
     by_cat=defaultdict(lambda :[])
     for i,y_i in enumerate(y):

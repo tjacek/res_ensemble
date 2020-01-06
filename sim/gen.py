@@ -1,6 +1,7 @@
 import numpy as np
 import keras
 import random
+from itertools import product
 import sim.dist
 
 def get_data_generator(gen_type):
@@ -63,3 +64,26 @@ def balanced_data(X_old,y_old,in_seqs=5,out_seqs=10,n_frames=5):
         for pair_k in pairs:
             yield pair_k
     return template(X_old,y_old,helper)
+
+class OneCat(object):
+    def __init__(self, cat_i):
+        self.cat_i = cat_i
+    
+    def __call__(self,X_old,y_old):
+        dist=sim.dist.make_balanced(y_old)
+        in_i,out_i=dist.divide(self.cat_i) 
+        pairs= list(product(in_i,in_i))
+        pairs+= list(product(out_i,in_i))
+        X,y=[],[]
+        for pair_k in pairs:
+#            raise Exception(out_i)
+            i,j=pair_k
+            x_i,y_i=X_old[i],y_old[i] 
+            x_j,y_j=X_old[j],y_old[j] 
+            sample_ij=sim.dist.sample_pairs(x_i,y_i,x_j,y_j,5)
+            for x_t,y_t in sample_ij:
+                X.append(x_t)
+                y.append(y_t)
+        X,y=np.array(X),keras.utils.to_categorical(y)
+        X=[X[:,0],X[:,1]]
+        return X,y  
