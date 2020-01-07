@@ -78,14 +78,6 @@ def ts_ensemble(seq_path,n_epochs=1000,single=False):
         resnet.train_model(seq_i,model_i,n_epochs)
         resnet.extract_feats(seq_i,model_i,feat_i)
 
-def extract_ensemble(seq_path):
-    cur_dir=os.path.split(seq_path)[0]
-    model_path,feat_path=cur_dir+'/models',cur_dir+'/full_feats'
-    files.make_dir(feat_path)
-    for i,model_i in enumerate(files.top_files(model_path)):
-        feat_i=feat_path+'/nn'+str(i)
-        resnet.extract_feats(seq_path,model_i,feat_i)
-
 def unify_datasets(in_path,agum_path,out_path):#for data agumentation
     data1,data2=imgs.read_seqs(in_path),imgs.read_seqs(agum_path)    
     train,test=data.split(data2.keys())
