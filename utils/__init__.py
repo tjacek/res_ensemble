@@ -62,22 +62,6 @@ def add_mode(old_path,new_path,out_path):
     unified={ name_i:add_helper(name_i) for name_i in list(new_modes.keys())}
     imgs.save_seqs(unified,out_path)
 
-def ts_ensemble(seq_path,n_epochs=1000,single=False):
-    cur_dir=os.path.split(seq_path)[0]
-    if(single):
-        model_path,feat_path=cur_dir+'/nn',cur_dir+'/feat'
-        resnet.train_model(seq_path,model_path,n_epochs)
-        resnet.extract_feats(seq_path,model_path,feat_path)
-        return
-    model_path,feat_path=cur_dir+'/models',cur_dir+'/feats'    
-    files.make_dir(model_path)
-    files.make_dir(feat_path)
-    for seq_i in files.top_files(seq_path):
-        id_i=seq_i.split('/')[-1]
-        model_i,feat_i=model_path+'/'+id_i,feat_path+'/'+id_i
-        resnet.train_model(seq_i,model_i,n_epochs)
-        resnet.extract_feats(seq_i,model_i,feat_i)
-
 def unify_datasets(in_path,agum_path,out_path):#for data agumentation
     data1,data2=imgs.read_seqs(in_path),imgs.read_seqs(agum_path)    
     train,test=data.split(data2.keys())

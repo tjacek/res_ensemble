@@ -10,7 +10,7 @@ import data,sim.gen,files,imgs,extract
 
 def show_frames(in_path,out_path):
     (X_train,y_train),test=data.make_dataset(in_path,False)
-    X,y=sim.gen.balanced_data(X_train,y_train)
+    X,y=sim.gen.OneCat(14)(X_train,y_train)#balanced_data(X_train,y_train)
     files.make_dir(out_path)
     for i,y_i in enumerate(y):
         x0,x1=X[0][i],X[1][i]
@@ -28,6 +28,12 @@ def extract_feats(frame_path,model_path,out_path=None):
     feat_dict={name_i:extractor.predict(seq_i) 
                 for name_i,seq_i in feats_seq.items()}
     extract.save_seqs(feat_dict,out_path)
+
+def sim_ens(in_path,out_path,n_epochs=500,n_cats=20):
+    files.make_dir(out_path)
+    for i in range(n_cats):
+        out_i="%s/nn%d"%(out_path,i)
+        make_model(in_path,out_i,n_epochs=n_epochs,gen_type=("one",i))
 
 def make_model(in_path,out_path,n_epochs=500,gen_type="balanced"):
     (X_train,y_train),test=data.make_dataset(in_path,False)

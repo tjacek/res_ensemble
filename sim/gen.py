@@ -5,6 +5,8 @@ from itertools import product
 import sim.dist
 
 def get_data_generator(gen_type):
+    if(type(gen_type)==tuple):
+        return OneCat(gen_type[1])
     if(gen_type=="balanced"):
         return balanced_data
     return gen_data
@@ -67,6 +69,7 @@ def balanced_data(X_old,y_old,in_seqs=5,out_seqs=10,n_frames=5):
 
 class OneCat(object):
     def __init__(self, cat_i):
+        print("OK")
         self.cat_i = cat_i
     
     def __call__(self,X_old,y_old):
@@ -76,7 +79,6 @@ class OneCat(object):
         pairs+= list(product(out_i,in_i))
         X,y=[],[]
         for pair_k in pairs:
-#            raise Exception(out_i)
             i,j=pair_k
             x_i,y_i=X_old[i],y_old[i] 
             x_j,y_j=X_old[j],y_old[j] 
