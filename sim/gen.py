@@ -33,11 +33,13 @@ def gen_data(X_old,y_old,n_seqs=3,n_frames=5):
                 yield pair_k
     return template(X_old,y_old,gen_helper)
 
-#def full_data(X_old,y_old):
-#    def full_helper(i,x_i,x_j,n_samples):
-#        for j in range(i,n_samples):
-#            yield X_old[j],y_old[j]
-#    return template(X_old,y_old,full_helper)
+def full_data(X_old,y_old):#ts
+    def full_helper(i,x_i,y_i,n_samples):
+        for j in range(i,n_samples):
+            x_j,y_j=X_old[j],y_old[j]
+            y_k=int(np.dot(y_i,y_j))
+            yield (x_i,x_j),y_k
+    return template(X_old,y_old,full_helper)
 
 def rand_data(X_old,y_old,size=10):
     def rand_helper(i,x_i,y_i,n_samples):
@@ -47,7 +49,7 @@ def rand_data(X_old,y_old,size=10):
         for k in range(size):
             ik=random.randint(0,len(x_i)-1)
             jk=random.randint(0,len(x_j)-1) 
-            yk=int(y_i==y_j)
+            yk=int(y_i,y_j)
             yield (x_j[jk],x_i[ik]),yk
     return template(X_old,y_old,rand_helper)
 
