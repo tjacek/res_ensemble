@@ -7,11 +7,20 @@ import ens,local,files
 from extract import save_seqs
 import sim.gen
 from keras.models import Model,Sequential
-from keras.layers import Input,Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D,Lambda
+from keras.layers import Input,Dense, Dropout, Flatten,GlobalAveragePooling1D
+from keras.layers import Conv2D,Conv1D, MaxPooling1D,MaxPooling2D,Lambda
+from keras import regularizers
+
+def extract(frame_path,model_path,out_path=None):
+    extractor=load_model(model_path)
+    (X,y),names=resnet.load_data(frame_path,split=False)
+    X=np.squeeze(X)
+    X_feats=extractor.predict(X)
+    resnet.get_feat_dict(X_feats,names,out_path)
 
 def make_model(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
+    X_train=np.squeeze(X_train)
     X,y=sim.gen.full_data(X_train,y_train)
 #    make_models=models.ts.get_model_factory("sim_exp")
     sim_metric,model=siamese_model(params)
@@ -21,25 +30,26 @@ def make_model(in_path,out_path=None,n_epochs=50):
         model.save(out_path)
 
 def siamese_model(params): #ts_network
-    input_shape=(params['ts_len'], params['n_feats'],1)
+    input_shape=(params['ts_len'], params['n_feats'])
     left_input = Input(input_shape)
     right_input = Input(input_shape)
 
     model = Sequential()
     activ='relu'
-    model.add(Conv2D(16, kernel_size=(4,100),activation=activ,name='conv0'))
+#    model.add(Conv2D(16, kernel_size=(4,100),activation=activ,name='conv0'))
 
-    model.add(Conv2D(16, kernel_size=(4,1),activation=activ,name='conv1'))
-    model.add(MaxPooling2D(pool_size=(2,1),name='pool1'))
-    model.add(Conv2D(16, kernel_size=(4,1),activation=activ,name='conv2'))
-    model.add(MaxPooling2D(pool_size=(2,1),name='pool2'))
-    model.add(Flatten())
-    model.add(Dense(64, activation=activ,name='hidden'))
+    model.add(Conv1D(64, kernel_size=4,activation=activ,name='conv1'))
+    model.add(MaxPooling1D(pool_size=2,name='pool1'))
+    model.add(Conv1D(32, kernel_size=4,activation=activ,name='conv2'))
+#    model.add(MaxPooling2D(pool_size=(2,1),name='pool2'))
+    model.add(GlobalAveragePooling1D())
+    model.add(Dense(64, activation=activ,name='hidden'#,kernel_regularizer=regularizers.l1(0.01)
+        ))
 
     encoded_l = model(left_input)
     encoded_r = model(right_input)
 
-    prediction,loss=contr_loss(encoded_l,encoded_r)
+    prediction,loss=basic_loss(encoded_l,encoded_r)
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
     
     optimizer = keras.optimizers.Adam(lr = 0.00006)
@@ -71,12 +81,6 @@ def euclidean_distance(vects):
 def eucl_dist_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
-
-#def extract(frame_path,model_path,out_path=None):
-#    extractor=load_model(model_path)
-#    (X,y),names=resnet.load_data(frame_path,split=False)
-#    X_feats=extractor.predict(X)
-#    resnet.get_feat_dict(X_feats,names,out_path)
 
 #def preproc_data(in_path,out_path,new_size=36,single=False):
 #    def helper(in_i,out_i):
