@@ -35,16 +35,7 @@ def siamese_model(params): #ts_network
     right_input = Input(input_shape)
 
     model = Sequential()
-    activ='relu'
-#    model.add(Conv2D(16, kernel_size=(4,100),activation=activ,name='conv0'))
-
-    model.add(Conv1D(64, kernel_size=4,activation=activ,name='conv1'))
-    model.add(MaxPooling1D(pool_size=2,name='pool1'))
-    model.add(Conv1D(32, kernel_size=4,activation=activ,name='conv2'))
-#    model.add(MaxPooling2D(pool_size=(2,1),name='pool2'))
-    model.add(GlobalAveragePooling1D())
-    model.add(Dense(64, activation=activ,name='hidden'#,kernel_regularizer=regularizers.l1(0.01)
-        ))
+    add_mean(model)
 
     encoded_l = model(left_input)
     encoded_r = model(right_input)
@@ -57,6 +48,26 @@ def siamese_model(params): #ts_network
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
     extractor.summary()
     return siamese_net,extractor
+
+def add_mean(model):
+    activ='relu'
+    model.add(Conv1D(64, kernel_size=4,activation=activ,name='conv1'))
+    model.add(MaxPooling1D(pool_size=2,name='pool1'))
+    model.add(Conv1D(32, kernel_size=4,activation=activ,name='conv2'))
+    model.add(GlobalAveragePooling1D())
+    model.add(Dense(64, activation=activ,name='hidden'))#,kernel_regularizer=regularizers.l1(0.01)))
+    return model
+
+def add_basic(model):
+    activ='relu'
+    model.add(Conv1D(64, kernel_size=8,activation=activ,name='conv1'))
+    model.add(MaxPooling1D(pool_size=4,name='pool1'))
+    model.add(Conv1D(32, kernel_size=8,activation=activ,name='conv2'))
+    model.add(MaxPooling1D(pool_size=4,name='pool2'))
+    model.add(Flatten())
+    model.add(Dropout(0.5))
+    model.add(Dense(64, activation=activ,name='hidden'))#,kernel_regularizer=regularizers.l1(0.01)))
+    return model
 
 def basic_loss(encoded_l,encoded_r):
     L2_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
