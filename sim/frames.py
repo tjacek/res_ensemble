@@ -114,27 +114,3 @@ def make_five(n_cats,n_channels,params=None):
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
     extractor.summary()
     return siamese_net,extractor
-
-def basic_loss(encoded_l,encoded_r):
-    L2_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
-    L2_distance = L2_layer([encoded_l, encoded_r])
-    return Dense(2,activation='sigmoid')(L2_distance),"binary_crossentropy"
-
-def contr_loss(encoded_l,encoded_r):
-    L2_layer = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)
-    return L2_layer([encoded_l, encoded_r]),contrastive_loss
-
-def contrastive_loss(y_true, y_pred):
-    margin = 1
-    square_pred = K.square(y_pred)
-    margin_square = K.square(K.maximum(margin - y_pred, 0))
-    return K.mean(y_true * square_pred + (1 - y_true) * margin_square)
-
-def euclidean_distance(vects):
-    x, y = vects
-    sum_square = K.sum(K.square(x - y), axis=1, keepdims=True)
-    return K.sqrt(K.maximum(sum_square, K.epsilon()))
-
-def eucl_dist_output_shape(shapes):
-    shape1, shape2 = shapes
-    return (shape1[0], 1)

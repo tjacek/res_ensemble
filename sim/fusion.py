@@ -6,7 +6,14 @@ from itertools import product
 import resnet
 from keras.models import Model,Sequential
 from keras.layers import Input,Dense, Dropout, Flatten,GlobalAveragePooling1D
-from keras.layers import Conv2D,Conv1D, MaxPooling1D,MaxPooling2D,Lambda
+from keras.layers import Conv2D,Conv1D, MaxPooling1D,MaxPooling2D,Lambda,BatchNormalization
+
+def extract(frame_path,model_path,out_path):
+    files.make_dir(out_path)
+    for i,model_i in enumerate(files.top_files(model_path)):
+        frame_i="%s/nn%d" % (frame_path,i)
+        out_i=out_path+"/nn"+str(i)
+        sim.extract(frame_i,model_i,out_i)
 
 def make_ens(in_path,out_path,n_epochs=10):
     files.make_dir(out_path)
@@ -18,6 +25,7 @@ def make_ens(in_path,out_path,n_epochs=10):
         X_i,y_i=gen_i(X_train,y_train)
         sim_metric,model=siamese_model(params)
         sim_metric.fit(X_i,y_i,epochs=n_epochs,batch_size=100)
+#        raise Exception("OK")
         model.save(out_path+'/nn'+str(i))
 
 class BinaryCats(object):
@@ -36,7 +44,7 @@ class BinaryCats(object):
             x_j,y_j=X_old[j],y_old[j] 
             X.append((x_j,x_i))
             y.append(int(y_i==y_j))
-        X,y=np.array(X),keras.utils.to_categorical(y)
+        X,y=np.array(X),np.array(y)#keras.utils.to_categorical(y)
         X=[X[:,0],X[:,1]]
         return X,y
 
@@ -51,21 +59,23 @@ def siamese_model(params): #ts_network
     encoded_l = model(left_input)
     encoded_r = model(right_input)
 
-    prediction,loss=sim.basic_loss(encoded_l,encoded_r)
+    prediction,loss=sim.good_loss(encoded_l,encoded_r)
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
     
     optimizer = keras.optimizers.Adam(lr = 0.00006)
     siamese_net.compile(loss=loss,optimizer=optimizer)
     extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
     extractor.summary()
+    siamese_net.summary()
     return siamese_net,extractor
 
 def add_mean(model):
     activ='relu'
-    model.add(Conv1D(16, kernel_size=8,activation=activ,name='conv1'))
+    model.add(Conv1D(64, kernel_size=8,activation=activ,name='conv1'))
     model.add(MaxPooling1D(pool_size=4,name='pool1'))
-    model.add(Conv1D(16, kernel_size=4,activation=activ,name='conv2'))
+    model.add(Conv1D(64, kernel_size=4,activation=activ,name='conv2'))
     model.add(GlobalAveragePooling1D())
     model.add(Dense(64, activation=activ))#,kernel_regularizer=regularizers.l1(0.01)))
+    model.add(Dropout(0.5))
     model.add(Dense(16,activation=activ,name='hidden'))
     return model

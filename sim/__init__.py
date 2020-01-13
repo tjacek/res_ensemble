@@ -35,12 +35,12 @@ def siamese_model(params): #ts_network
     right_input = Input(input_shape)
 
     model = Sequential()
-    add_mean(model)
+    add_basic(model)
 
     encoded_l = model(left_input)
     encoded_r = model(right_input)
 
-    prediction,loss=basic_loss(encoded_l,encoded_r)
+    prediction,loss=contr_loss(encoded_l,encoded_r)
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
     
     optimizer = keras.optimizers.Adam(lr = 0.00006)
@@ -60,13 +60,13 @@ def add_mean(model):
 
 def add_basic(model):
     activ='relu'
-    model.add(Conv1D(64, kernel_size=8,activation=activ,name='conv1'))
+    model.add(Conv1D(256, kernel_size=8,activation=activ,name='conv1'))
     model.add(MaxPooling1D(pool_size=4,name='pool1'))
-    model.add(Conv1D(32, kernel_size=8,activation=activ,name='conv2'))
+    model.add(Conv1D(256, kernel_size=8,activation=activ,name='conv2'))
     model.add(MaxPooling1D(pool_size=4,name='pool2'))
     model.add(Flatten())
     model.add(Dropout(0.5))
-    model.add(Dense(64, activation=activ,name='hidden'))#,kernel_regularizer=regularizers.l1(0.01)))
+    model.add(Dense(64, activation=activ,name='hidden',kernel_regularizer=regularizers.l1(0.01)))
     return model
 
 def basic_loss(encoded_l,encoded_r):
@@ -79,7 +79,7 @@ def contr_loss(encoded_l,encoded_r):
     return L2_layer([encoded_l, encoded_r]),contrastive_loss
 
 def contrastive_loss(y_true, y_pred):
-    margin = 1
+    margin = 50
     square_pred = K.square(y_pred)
     margin_square = K.square(K.maximum(margin - y_pred, 0))
     return K.mean(y_true * square_pred + (1 - y_true) * margin_square)
@@ -93,21 +93,13 @@ def eucl_dist_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
 
-#def preproc_data(in_path,out_path,new_size=36,single=False):
-#    def helper(in_i,out_i):
-#        seqs_i=resnet.read_local_feats(in_i)
-#        seqs_i={name_j:local.upsampling(seq_ij,new_size) 
-#                 for name_j,seq_ij in seqs_i.items()}
-#        save_seqs(seqs_i,out_i)
-#    if(single):
-#        helper(in_path,out_path)
-#    else:
-#        ens.template(in_path,out_path,helper)
+#def good_loss(encoded_l,encoded_r):
+#    L2_layer = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)#,
+#    L2_distance = L2_layer([encoded_l, encoded_r])
+#    return L2_distance,true_contr
 
-#def make_ensemble(in_path,model_path,out_path,n_epochs=50):
-#    files.make_dir(out_path)
-#    def helper(in_i,out_i):
-#        make_model(in_i,out_i,n_epochs)
-#        feat_i=out_path+"/"+out_i.split("/")[-1]
-#        extract(in_i,out_i,feat_i)
-#    ens.template(in_path,model_path,helper)
+#def true_contr(y_true, y_pred):
+#    margin = 50
+#    square_pred = K.square(y_pred)
+#    margin_square = K.square(K.maximum(margin - y_pred, 0))
+#    return K.mean(y_true * square_pred + (1 - y_true) * margin_square)

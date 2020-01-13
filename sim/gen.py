@@ -3,6 +3,7 @@ import keras
 import random
 from itertools import product
 import sim.dist
+import gc
 
 def get_data_generator(gen_type):
     if(type(gen_type)==tuple):
@@ -19,7 +20,7 @@ def template(X_old,y_old,fun):
         for x_ij,y_ij in fun(i,x_i,y_i,n_samples):
             X.append(x_ij)
             y.append(y_ij)
-    X,y=np.array(X),keras.utils.to_categorical(y)
+    X,y=np.array(X),np.array(y)#keras.utils.to_categorical(y)
     X=[X[:,0],X[:,1]]
     return X,y  
 
@@ -36,8 +37,9 @@ def gen_data(X_old,y_old,n_seqs=3,n_frames=5):
 def full_data(X_old,y_old):#ts
     def full_helper(i,x_i,y_i,n_samples):
         for j in range(i,n_samples):
+#            if(j%2==0):
             x_j,y_j=X_old[j],y_old[j]
-            y_k=int(np.dot(y_i,y_j))
+            y_k=int(np.dot(y_i,y_j))                
             yield (x_i,x_j),y_k
     return template(X_old,y_old,full_helper)
 
