@@ -18,13 +18,18 @@ def extract(frame_path,model_path,out_path=None):
     X_feats=extractor.predict(X)
     resnet.get_feat_dict(X_feats,names,out_path)
 
+def sim_ens(in_path,out_path,n_epochs=5,n_cats=20):
+    files.make_dir(out_path)
+    for i,in_i in enumerate(files.top_files(in_path)):
+        out_i="%s/nn%d"%(out_path,i)
+        make_model(in_i,out_i,n_epochs)
+
 def make_model(in_path,out_path=None,n_epochs=50):
     (X_train,y_train),test,params=resnet.load_data(in_path,split=True)
     X_train=np.squeeze(X_train)
     X,y=sim.gen.full_data(X_train,y_train)
 #    make_models=models.ts.get_model_factory("sim_exp")
     sim_metric,model=siamese_model(params)
-#    raise Exception("OK")
     sim_metric.fit(X,y,epochs=n_epochs,batch_size=100)
     if(out_path):
         model.save(out_path)
@@ -92,14 +97,3 @@ def euclidean_distance(vects):
 def eucl_dist_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
-
-#def good_loss(encoded_l,encoded_r):
-#    L2_layer = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)#,
-#    L2_distance = L2_layer([encoded_l, encoded_r])
-#    return L2_distance,true_contr
-
-#def true_contr(y_true, y_pred):
-#    margin = 50
-#    square_pred = K.square(y_pred)
-#    margin_square = K.square(K.maximum(margin - y_pred, 0))
-#    return K.mean(y_true * square_pred + (1 - y_true) * margin_square)
