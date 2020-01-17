@@ -1,6 +1,7 @@
 import numpy as np,cv2
 from scipy.ndimage import convolve1d
 import imgs,files 
+from preproc.rescale import scale
 
 def transform(in_path,out_path,type="diff"):
     single=True
@@ -27,17 +28,19 @@ def motion_helper(frames):
 
 def action_imgs(in_path,out_path="action_imgs"):
     action_dict=imgs.read_seqs(in_path)
-    action_dict=imgs.frame_tranform(preproc,action_dict)
+#    action_dict=imgs.transform(preproc,action_dict)
     files.make_dir(out_path)
-    action_dict={ name_i:diff(frames_i) for name_i,frames_i in action_dict.items()}
+    action_dict={ name_i:diff_helper(frames_i) for name_i,frames_i in action_dict.items()}
     for name_i,frames_i in action_dict.items():
         out_i=out_path+'/'+name_i.split(".")[0]+".png"
+        frames_i=[scale(img_i)  for img_i in frames_i]
         cv2.imwrite(out_i,sum_imgs(frames_i))
 
 def smooth(img_i):
     return cv2.GaussianBlur(img_i,(5,5),cv2.BORDER_DEFAULT)
 
 def diff_helper(frames):
+    frames=[cv2.Canny(frame_i,100,200) for frame_i in frames]
     return[ np.abs(frames[i]-frames[i+1])
                 for i in range(len(frames)-1)]
 
