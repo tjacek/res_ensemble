@@ -1,7 +1,15 @@
 import numpy as np
-import imgs
+import imgs,preproc.rescale
 
-
+def projection(in_path,out_path):
+    proj_x=get_helper(dim=0)
+    def smart_proj(frames):
+        x_frames=proj_x(frames)
+        x_frames=preproc.rescale.smooth_proj(x_frames)
+        x_frames=preproc.rescale.scale(x_frames)
+        return x_frames
+    imgs.transform(in_path,out_path,smart_proj,False)
+	
 def single_projection(in_path,out_path,dim=0):
     helper=get_helper(dim)
     imgs.transform(in_path,out_path,helper,False)
@@ -17,7 +25,7 @@ def get_helper(dim=0):
             frame_i=np.zeros((max_x+5,max_y+5))
             for point_ij in points_i:
                 x_j,y_j=int(point_ij[dim]),int(point_ij[2])
-                frame_i[x_j][y_j]=100.0
+                frame_i[x_j][y_j]=200.0
             new_frames.append(frame_i)
         return new_frames
     return proj_helper
