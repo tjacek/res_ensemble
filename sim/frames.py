@@ -53,40 +53,6 @@ def prepare_data(X,y):
     print(n_cats,n_channels)
     return X,n_cats,n_channels
 
-def make_five_(n_cats,n_channels,params=None):
-    if(not params):
-        params={}
-    input_shape=(64,64,n_channels)
-    left_input = Input(input_shape)
-    right_input = Input(input_shape)
-
-    model = Sequential()
-    activ='relu'
-    model.add(Conv2D(64, kernel_size=(4,4),activation=activ,name='conv1'))
-    model.add(MaxPooling2D(pool_size=(2,2),name='pool1'))
-    model.add(Conv2D(32, kernel_size=(4,4),activation=activ,name='conv2'))
-    model.add(MaxPooling2D(pool_size=(2,2),name='pool2'))
-    model.add(Conv2D(16, kernel_size=(4,4),activation=activ,name='conv3'))
-    model.add(MaxPooling2D(pool_size=(2,2),name='pool3'))
-    model.add(Flatten())
-    model.add(Dense(64, activation=activ,name='hidden',kernel_regularizer=regularizers.l1(0.01)))
-
-    encoded_l = model(left_input)
-    encoded_r = model(right_input)
-
-
-    L2_layer = Lambda(lambda tensors:K.square(tensors[0] - tensors[1]))
-    L2_distance = L2_layer([encoded_l, encoded_r])
-
-    prediction = Dense(2,activation='sigmoid')(L2_distance)
-    siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
-    siamese_net.summary()
-    optimizer = keras.optimizers.Adam(lr = 0.00006)#keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True)
-    siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer)
-    extractor=Model(inputs=model.get_input_at(0),outputs=model.get_layer("hidden").output)
-    return siamese_net,extractor
-
-
 def make_five(n_cats,n_channels,params=None):
     if(not params):
         params={}
@@ -106,7 +72,7 @@ def make_five(n_cats,n_channels,params=None):
     encoded_l = model(left_input)
     encoded_r = model(right_input)
 
-    prediction,loss=contr_loss(encoded_l,encoded_r)
+    prediction,loss=sim.contr_loss(encoded_l,encoded_r)
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
     optimizer = keras.optimizers.Adam(lr = 0.00006)#keras.optimizers.SGD(lr=0.001,  momentum=0.9, nesterov=True)
     siamese_net.compile(loss=loss,#"binary_crossentropy",
