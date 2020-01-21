@@ -10,11 +10,13 @@ class Extractor(object):
 
     def __call__(self,frame_i):
         frame_feats=[]
-        for fun_j in self.fun:
-            frame_feats+=fun_j(frame_i)
+        if(self.fun):
+            for fun_j in self.fun:
+                frame_feats+=fun_j(frame_i)
         points=nonzero_points(frame_i)
-        for fun_j in self.points:
-            frame_feats+=fun_j(points)
+        if(self.points):
+            for fun_j in self.points:
+                frame_feats+=fun_j(points)
         return frame_feats
 
 def nonzero_points(frame_i):
@@ -63,3 +65,5 @@ def spline(feat_i,new_size=128):
     cs=CubicSpline(old_x,feat_i)
     new_size=np.arange(new_size)  
     return cs(new_size)
+
+compute("../MSR/box","../MSR/deep/full")
