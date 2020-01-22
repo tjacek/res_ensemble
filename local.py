@@ -66,4 +66,10 @@ def spline(feat_i,new_size=128):
     new_size=np.arange(new_size)  
     return cs(new_size)
 
-compute("../MSR/box","../MSR/deep/full")
+def global_center_of_mass(points):
+    all_points=[]
+    for points_i in all_points:
+        all_points+=points_i
+    return np.mean(all_points,axis=1)
+
+compute("../MHAD/box","../MHAD/deep/full")
